@@ -3,6 +3,7 @@ local popcount4, ctz4, cellDog, cloneGrid = popcount4, ctz4, cellDog, cloneGrid
 
 local Board = require 'board'
 local buttons = require 'buttons'
+local tutorial = require 'tutorial'
 
 local sprites = require 'sprites'
 
@@ -15,8 +16,10 @@ local CELL_SIZE = 40
 return function ()
   local s = {}
 
-  local board = Board.create(1)
+  local board = Board.create(3)
   local itemCount = {}
+
+  local tut = tutorial(board.tutorial)
 
   -- Selected storehouse item and feasible regions
   local selectedItem = -1
@@ -95,6 +98,7 @@ return function ()
         elseif selectedItem == 5 then selectedValue = 1
         end
         updateFeasiblility()
+        tut.emit('storehouse_click ' .. selectedItem)
       end
     )
   end
@@ -126,6 +130,7 @@ return function ()
         -- Save board state
         cloneGrid(savedGrid, board.grid)
         for i = 1, 5 do savedItemCount[i] = itemCount[i] end
+        tut.emit('run')
       else
         board.reset()
         -- Restore board state
@@ -134,6 +139,7 @@ return function ()
           itemCount[i] = savedItemCount[i]
           btnsStorehouse.enable(i, itemCount[i] > 0)
         end
+        tut.emit('stop')
       end
     end
   )
@@ -165,6 +171,7 @@ return function ()
   local dragToStorehouse = false
 
   s.press = function (x, y)
+    if tut.blocksInteractions() then return end
     if btnsStorehouse.press(x, y) then return end
     if x >= STORE_WIDTH then
       local r, c = cellPos(x, y)
@@ -303,6 +310,12 @@ return function ()
         end
         cellAnim[#cellAnim + 1] = {pinpointRow, pinpointCol, ANIM_TYPE_PUT, ANIM_DUR}
         selectedItem = -1
+        tut.emit('put ' .. pinpointRow .. ' ' .. pinpointCol)
+        local max = 0
+        for _, count in ipairs(itemCount) do
+          if max < count then max = count end
+        end
+        if max == 0 then tut.emit('empty') end
       end
       if selectedDrag and holdRow == -1 then
         selectedItem = -1
@@ -317,10 +330,12 @@ return function ()
       if dog >= 1 and dog <= 4 then
         local newDog = rotateDogForPath(dog % 4 + 1, cell)
         cell = cell + (newDog - dog) * 16
+        tut.emit('rotate_dog')
       else
         local newSides = (sides * 2) % 16 + (bit.arshift(cell, 3) % 2)
         cell = cell + (newSides - sides)
         cellAnim[#cellAnim + 1] = {holdRow, holdCol, ANIM_TYPE_ROTATE, ANIM_DUR}
+        tut.emit('rotate_path')
       end
       board.grid[holdRow][holdCol] = cell
     end
@@ -348,7 +363,9 @@ return function ()
       end
     end
     -- Update board
-    if boardRunning then board.update() end
+    if boardRunning and not tut.blocksBoardUpdates() then board.update() end
+    -- Update tutorial
+    tut.update()
   end
 
   local function drawSheep(sh)
@@ -525,6 +542,9 @@ return function ()
         BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
       )
     end
+
+    -- Tutorial, if any
+    tut.draw()
 
     love.graphics.setColor(1, 1, 1)
   end

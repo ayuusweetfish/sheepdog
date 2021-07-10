@@ -53,7 +53,7 @@ function Board.create(level)
   -- prog: 0 = at <from>, Board.CELL_SUBDIV = at <to>
   -- sheepfold: whether already in the sheepfold
 
-  local w, h = string.len(levelData[3]), #levelData - 2
+  local w, h = utf8.len(levelData[3]), #levelData - 2
   local gridInit = {}
   for r = 1, h do
     local row = {}
@@ -219,6 +219,7 @@ function Board.create(level)
     sheep = sheep,
     update = update,
     reset = reset,
+    tutorial = levelData.tutorial,
   }
 end
 
