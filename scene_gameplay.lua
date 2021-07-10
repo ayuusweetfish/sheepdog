@@ -4,6 +4,8 @@ local popcount4, ctz4, cellDog = popcount4, ctz4, cellDog
 local Board = require 'board'
 local buttons = require 'buttons'
 
+local sprites = require 'sprites'
+
 local BORDER_PAD = 12
 local ITEM_SIZE = 60
 local ITEM_SPACE = 12
@@ -55,11 +57,16 @@ return function ()
 
   local btnsStorehouse = buttons()
   for i = 1, 5 do
+    local sprite = 'res/ice-cream_1f368.png'
+    if i <= 4 then
+      sprite = love.graphics.newImage('res/path' .. i .. '.png')
+      sprite:setFilter('nearest', 'nearest')
+    end
     btnsStorehouse.add(
       BORDER_PAD,
       BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
       ITEM_SIZE, ITEM_SIZE,
-      'ice-cream_1f368.png',
+      sprite,
       function ()
         if selectedItem == i then
           selectedItem = -1
@@ -141,6 +148,28 @@ return function ()
     s.move(x, y)
   end
 
+  local function pathCellType(cell)
+    local count = popcount4(cell)
+    if count == 1 then return 0
+    elseif count == 2 then
+      if cell % 16 == 1 + 4 or cell % 16 == 2 + 8 then return 1
+      else return 2 end
+    elseif count == 3 then return 3
+    elseif count == 4 then return 4
+    end
+    return -1
+  end
+
+  local pathCellRotationLookup = {
+    [0] = 0, 0, math.pi / 2, 0,
+    math.pi, 0, math.pi / 2, 0,
+    -math.pi / 2, -math.pi / 2, -math.pi / 2, -math.pi / 2,
+    math.pi, math.pi, math.pi / 2, 0
+  }
+  local function pathCellRotation(cell)
+    return pathCellRotationLookup[cell % 16]
+  end
+
   local function convertHoldToPinpoint()
     holdTime = -1
     pinpointingItem = true
@@ -154,13 +183,7 @@ return function ()
       selectedValue = dog
       board.grid[pinpointRow][pinpointCol] = cell - dog * 16
     else
-      local count = popcount4(cell)
-      if count == 2 then
-        if cell % 16 == 1 + 4 or cell % 16 == 2 + 8 then selectedItem = 1
-        else selectedItem = 2 end
-      elseif count == 3 then selectedItem = 3
-      elseif count == 4 then selectedItem = 4
-      end
+      selectedItem = pathCellType(cell)
       selectedValue = cell % 16
       board.grid[pinpointRow][pinpointCol] = Board.EMPTY
     end
@@ -309,19 +332,17 @@ return function ()
         local yCell = yStart + (r - 1) * CELL_SIZE
         love.graphics.rectangle('fill', xCell, yCell, CELL_SIZE, CELL_SIZE)
         if board.grid[r][c] >= Board.PATH then
-          local pts = {{0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}}
-          love.graphics.setColor(1.0, 0.8, 0.2)
-          love.graphics.setLineWidth(5)
-          for k = 1, 4 do
-            if bit.band(board.grid[r][c], bit.lshift(1, k - 1)) ~= 0 then
-              love.graphics.line(
-                xCell + CELL_SIZE * 0.5,
-                yCell + CELL_SIZE * 0.5,
-                xCell + CELL_SIZE * pts[k][1],
-                yCell + CELL_SIZE * pts[k][2]
-              )
-            end
+          -- Draw path
+          local ty = pathCellType(board.grid[r][c])
+          if ty == 0 then
+            -- TODO: Handle sheepfolds with one inlet
+          else
+            local r = pathCellRotation(board.grid[r][c])
+            love.graphics.setColor(1, 1, 1)
+            sprites.draw('path' .. ty, xCell, yCell, r, CELL_SIZE, CELL_SIZE)
           end
+          -- Draw dog
+          local pts = {{0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}}
           local dog = cellDog(board.grid[r][c])
           if dog ~= 0 then
             local x1 = (pts[dog][1] - 0.5) * 0.7

@@ -14,9 +14,9 @@ return function ()
     local sx, sy = 1, 1
     if type(sprite) == 'string' then
       sprite = love.graphics.newImage(sprite)
-      local iw, ih = sprite:getDimensions()
-      sx, sy = w / iw, h / ih
     end
+    local iw, ih = sprite:getDimensions()
+    sx, sy = w / iw, h / ih
     btns[#btns + 1] = {
       x = x, y = y,
       w = w, h = h,
