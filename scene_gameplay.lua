@@ -44,13 +44,17 @@ return function ()
   local yStart = H / 2 - CELL_SIZE * board.h / 2
 
   local function drawSheep(sh)
-    local prog = sh.prog / Board.CELL_SUBDIV
-    local r = sh.from[1] * (1 - prog) + sh.to[1] * prog
-    local c = sh.from[2] * (1 - prog) + sh.to[2] * prog
-    local xCen = xStart + (c - 0.5) * CELL_SIZE
-    local yCen = yStart + (r - 0.5) * CELL_SIZE
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.circle('fill', xCen, yCen, 10)
+    if sh.eta == 0 then
+      local prog = sh.prog / Board.CELL_SUBDIV
+      local r = sh.from[1] * (1 - prog) + sh.to[1] * prog
+      local c = sh.from[2] * (1 - prog) + sh.to[2] * prog
+      local xCen = xStart + (c - 0.5) * CELL_SIZE
+      local yCen = yStart + (r - 0.5) * CELL_SIZE
+      love.graphics.setColor(1, 1.2 - sh.flock * 0.2, 1)
+      love.graphics.circle('fill', xCen, yCen, 10)
+    else
+      -- Maybe draw sheep walking in?
+    end
   end
 
   s.draw = function ()
@@ -80,6 +84,12 @@ return function ()
                 yCell + CELL_SIZE * pts[k][2]
               )
             end
+          end
+          local ty = math.floor(board.grid[r][c] / Board.PATH)
+          if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
+            love.graphics.setColor(0.9, 1.1 - (ty - Board.TYPE_SHEEPFOLD + 1) * 0.2, 0.9)
+            love.graphics.circle('fill',
+              xCell + CELL_SIZE / 2, yCell + CELL_SIZE / 2, CELL_SIZE / 3)
           end
         end
       end
