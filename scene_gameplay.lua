@@ -272,8 +272,8 @@ return function ()
     -- Grid
     for r = 1, board.h do
       for c = 1, board.w do
-        if board.grid[r][c] == Board.ENTRY then
-          love.graphics.setColor(1.0, 0.85, 0.7)
+        if board.grid[r][c] == Board.OBSTACLE then
+          love.graphics.setColor(0.8, 0.4, 0.4)
         elseif (r + c) % 2 == 0 then
           love.graphics.setColor(0.65, 0.85, 0.55)
         else

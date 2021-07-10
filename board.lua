@@ -1,6 +1,10 @@
 require 'utils'
 local popcount4, ctz4, cellDog = popcount4, ctz4, cellDog
 
+local utf8 = require 'utf8'
+
+local levels = require 'levels'
+
 local Board = {
   -- cell types
   EMPTY = 0,
@@ -36,52 +40,19 @@ local function cloneGrid(dst, grid)
 end
 
 function Board.create(level)
-  local w, h = 16, 10
-  local grid = {}
-  for r = 1, h do
-    grid[r] = {}
-    for c = 1, w do grid[r][c] = Board.EMPTY end
-  end
-  grid[10][1] = Board.PATH + 2 + 8
-  grid[10][2] = Board.PATH + 1 + 8
-  grid[8][2] = Board.PATH + 1 + 4
-  grid[7][2] = Board.PATH + 1 + 4
-  grid[6][2] = Board.PATH + 1 + 4
-  grid[5][2] = Board.PATH + 1 + 4
-  grid[4][2] = Board.PATH + 1 + 4
-  grid[3][2] = Board.PATH + 2 + 4
-  grid[3][3] = Board.PATH + 1 + 8
-  grid[2][3] = Board.PATH + 2 + 4
-  grid[6][3] = Board.PATH * (Board.TYPE_SHEEPFOLD + 1) + 1
-  grid[2][4] = Board.PATH + 2 + 8
-  grid[2][5] = Board.PATH + 4 + 8
-  grid[3][5] = Board.PATH + 1 + 4
-  grid[4][5] = Board.PATH + 1 + 2 + 8
-  grid[4][4] = Board.PATH + 2 + 8
-  grid[4][6] = Board.PATH + 1 + 8
-  grid[3][6] = Board.PATH + 1 + 4
-  grid[2][6] = Board.PATH + 1 + 4
-  grid[1][6] = Board.PATH + 15
-  grid[1][7] = Board.PATH + 2 + 8
-  grid[1][5] = Board.PATH + 2 + 8
-  grid[1][4] = Board.PATH + 2 + 8
-  grid[1][3] = Board.PATH + 2 + 8
-  grid[1][2] = Board.PATH + 2 + 8
-  grid[1][1] = Board.PATH * Board.TYPE_SHEEPFOLD + 2
-  grid[5][5] = Board.PATH + 1 + 2 + 4
-  grid[6][5] = Board.PATH + 1 + 2 + 4
+  local levelData = levels[level]
+  if levelData == nil then error('No such level') end
 
-  local gridInit = {}
-  cloneGrid(gridInit, grid)
+  local itemCount = levelData[1]
 
   -- {flock index, count}
-  local sheepFlocks = {
-    {1, 5},
-    {-1, 3},
-    {2, 4},
-  }
-
-  local itemCount = {4, 3, 2, 1, 4}
+  local sheepFlocks = {}
+  for i, val in ipairs(levelData[2]) do
+    sheepFlocks[i] = {
+      i % 2 == 1 and math.ceil(i / 2) or -1,
+      val
+    }
+  end
 
   local sheep = {}
   -- flock: flock index
@@ -91,6 +62,41 @@ function Board.create(level)
   -- dir: 0-3 = N/E/S/W
   -- prog: 0 = at <from>, Board.CELL_SUBDIV = at <to>
   -- sheepfold: whether already in the sheepfold
+
+  local w, h = string.len(levelData[3]), #levelData - 2
+  local gridInit = {}
+  for r = 1, h do
+    local row = {}
+    gridInit[r] = row
+    if utf8.len(levelData[r + 2]) ~= w then
+      error('Incorrect number of characters in row ' .. tostring(r))
+    end
+    for _, char in utf8.codes(levelData[r + 2]) do
+      local map = {
+        [' '] = Board.EMPTY,
+        ['o'] = Board.OBSTACLE,
+        ['─'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 2 + 8,
+        ['│'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 1 + 4,
+        ['┌'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 2 + 4,
+        ['┐'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 4 + 8,
+        ['└'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 1 + 2,
+        ['┘'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 8 + 1,
+        ['├'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 1 + 2 + 4,
+        ['┤'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 4 + 8 + 1,
+        ['┬'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 2 + 4 + 8,
+        ['┴'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 8 + 1 + 2,
+        ['┼'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 1 + 2 + 4 + 8,
+        ['1'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 0) + 8,
+        ['2'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 1) + 8,
+        ['3'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 2) + 8,
+        ['4'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 3) + 8,
+      }
+      char = utf8.char(char)
+      row[#row + 1] = map[char]
+    end
+  end
+
+  local grid = {}
 
   local function reset()
     -- Reset grid
