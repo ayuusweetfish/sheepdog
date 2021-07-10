@@ -85,6 +85,9 @@ function Board.create(level)
   end
 
   local function update()
+    -- index: flock * w * h + r * w + c, value: true
+    local occupy = {}
+
     for _, sh in ipairs(sheep) do if sh.dir ~= -1 then
       sh.prog = sh.prog + 1
       if sh.prog == Board.CELL_SUBDIV then
@@ -115,10 +118,16 @@ function Board.create(level)
         -- Check for viability
         if dir ~= -1 then
           local r1, c1 = move(sh.from, dir)
+
+          -- Destination has no corresponding inlet?
           if r1 < 1 or r1 > h or c1 < 1 or c1 > w or
               grid[r1][c1] < Board.PATH or
               bit.band(grid[r1][c1] % 16, bit.lshift(1, (dir + 2) % 4)) == 0
           then
+            dir = -1
+
+          -- Blocked by another sheep in the same flock?
+          elseif occupy[sh.flock * w * h + r1 * w + c1] then
             dir = -1
           end
         end
@@ -127,6 +136,9 @@ function Board.create(level)
         if dir ~= -1 then
           local r1, c1 = move(sh.from, dir)
           sh.to = {r1, c1}
+          occupy[sh.flock * w * h + r1 * w + c1] = true
+        else
+          occupy[sh.flock * w * h + sh.from[1] * w + sh.from[2]] = true
         end
       end
     end end
