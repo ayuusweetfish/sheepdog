@@ -16,7 +16,7 @@ local CELL_SIZE = 40
 return function ()
   local s = {}
 
-  local board = Board.create(3)
+  local board = Board.create(4)
   local itemCount = {}
 
   local tut = tutorial(board.tutorial)
@@ -112,6 +112,7 @@ return function ()
   resetItemCount()
 
   local boardRunning = false
+  local boardRunProgress = 0
 
   -- Run button
   local runButton
@@ -127,6 +128,7 @@ return function ()
         boardRunning and 'res/black-left-pointing-double-triangle_23ea.png' or
         'res/black-right-pointing-triangle_25b6.png')
       if boardRunning then
+        boardRunProgress = 0
         -- Save board state
         cloneGrid(savedGrid, board.grid)
         for i = 1, 5 do savedItemCount[i] = itemCount[i] end
@@ -363,9 +365,19 @@ return function ()
       end
     end
     -- Update board
-    if boardRunning and not tut.blocksBoardUpdates() then board.update() end
+    if boardRunning and not tut.blocksBoardUpdates() then
+      board.update()
+      boardRunProgress = boardRunProgress + 1
+    end
     -- Update tutorial
     tut.update()
+  end
+
+  local function flockColour(n)
+    if n == 1 then return 1.0, 0.7, 0.5
+    elseif n == 2 then return 1.0, 0.5, 0.9
+    else return 0.9, 0.9, 0.9
+    end
   end
 
   local function drawSheep(sh)
@@ -375,7 +387,7 @@ return function ()
       local c = sh.from[2] * (1 - prog) + sh.to[2] * prog
       local xCen = xStart + (c - 0.5) * CELL_SIZE
       local yCen = yStart + (r - 0.5) * CELL_SIZE
-      love.graphics.setColor(1, 1.2 - sh.flock * 0.2, 1)
+      love.graphics.setColor(flockColour(sh.flock))
       love.graphics.circle('fill', xCen, yCen, 10)
     else
       -- Maybe draw sheep walking in?
@@ -447,7 +459,7 @@ return function ()
           end
           local ty = math.floor(board.grid[r][c] / Board.PATH)
           if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
-            love.graphics.setColor(0.9, 1.1 - (ty - Board.TYPE_SHEEPFOLD + 1) * 0.2, 0.9)
+            love.graphics.setColor(flockColour(ty - Board.TYPE_SHEEPFOLD + 1))
             love.graphics.circle('fill',
               xCell + CELL_SIZE / 2, yCell + CELL_SIZE / 2, CELL_SIZE / 3)
           end
@@ -542,6 +554,27 @@ return function ()
         BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
       )
     end
+
+    -- Progress indicator
+    local xInd = STORE_WIDTH + 48
+    local yInd = H - 20
+    local scaleInd = (W - STORE_WIDTH - 60) / 30
+    local pfxSum = 0
+    for _, flock in ipairs(board.sheepFlocks) do
+      local newSum = pfxSum + flock[2]
+      love.graphics.setLineWidth(4)
+      love.graphics.setColor(flockColour(flock[1]))
+      love.graphics.line(
+        xInd + pfxSum * scaleInd, yInd, xInd + newSum * scaleInd, yInd
+      )
+      love.graphics.setColor(0, 0, 0)
+      love.graphics.print(pfxSum, xInd + pfxSum * scaleInd, yInd - 18)
+      pfxSum = newSum
+    end
+    love.graphics.print(pfxSum, xInd + pfxSum * scaleInd, yInd - 18)
+    love.graphics.setColor(0.6, 0.6, 0.6, 0.8)
+    local xProg = xInd + math.min(boardRunProgress / Board.CELL_SUBDIV, pfxSum) * scaleInd
+    love.graphics.line(xProg, yInd - 12, xProg, yInd + 12)
 
     -- Tutorial, if any
     tut.draw()

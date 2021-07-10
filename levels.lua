@@ -66,8 +66,8 @@ return {
     "  │  ",
     "──┴─2",
     tutorial = {
-      {0.2, 0.85, 'this time there are two flocks', 'delay 600'},
-      {0.2, 0.85, 'this time there are two flocks'},
+      {0.2, 0.87, 'this time there are two flocks', 'delay 600'},
+      {0.2, 0.87, 'this time there are two flocks'},
       {0.5, 0.65, 'we need a dog here and turn it during play', 'put 3 3'},
       {0.5, 0.65, 'we need a dog here and turn it during play'},
       {0.05, 0.8, 'play', 'run'},
