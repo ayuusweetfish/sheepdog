@@ -1,5 +1,5 @@
 require 'utils'
-local popcount4, ctz4 = popcount4, ctz4
+local popcount4, ctz4, cellDog = popcount4, ctz4, cellDog
 
 local Board = {
   -- cell types
@@ -151,7 +151,7 @@ function Board.create(level)
               dir = ctz4(bit.bxor(cell % 16, bit.lshift(1, (sh.dir + 2) % 4)))
             else
               -- Check for the dog
-              local dog = bit.arshift(cell, 4) % 16
+              local dog = cellDog(cell)
               if dog >= 1 and dog <= 4 then
                 dir = dog - 1
               end

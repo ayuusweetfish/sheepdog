@@ -1,5 +1,5 @@
 require 'utils'
-local popcount4, ctz4 = popcount4, ctz4
+local popcount4, ctz4, cellDog = popcount4, ctz4, cellDog
 
 local Board = require 'board'
 local buttons = require 'buttons'
@@ -18,6 +18,7 @@ return function ()
   -- Selected storehouse item and feasible regions
   local selectedItem = -1
   local selectedValue = 0
+  local selectedDrag = false  -- if true, should recover to (holdRow, holdCol) on failure
   local feasible = {}
   for r = 1, board.h do
     feasible[r] = {}
@@ -40,15 +41,28 @@ return function ()
       'ice-cream_1f368.png',
       function ()
         selectedItem = i
+        selectedDrag = false
         if selectedItem == 1 then selectedValue = 1 + 4
         elseif selectedItem == 2 then selectedValue = 1 + 2
         elseif selectedItem == 3 then selectedValue = 1 + 2 + 4
         elseif selectedItem == 4 then selectedValue = 1 + 2 + 4 + 8
-        -- TODO: dog
+        elseif selectedItem == 5 then selectedValue = 1
         end
-        for r = 1, board.h do
-          for c = 1, board.w do
-            feasible[r][c] = (board.grid[r][c] == Board.EMPTY)
+        if selectedItem >= 1 and selectedItem <= 4 then
+          -- Path cells can be placed in any empty cell
+          for r = 1, board.h do
+            for c = 1, board.w do
+              feasible[r][c] = (board.grid[r][c] == Board.EMPTY)
+            end
+          end
+        elseif selectedItem == 5 then
+          -- Dogs can be placed in junctions
+          for r = 1, board.h do
+            for c = 1, board.w do
+              feasible[r][c] = (board.grid[r][c] >= Board.PATH and
+                popcount4(board.grid[r][c]) >= 3 and
+                cellDog(board.grid[r][c]) == 0)
+            end
           end
         end
       end
@@ -108,18 +122,32 @@ return function ()
     holdTime = -1
     pinpointingItem = true
     pinpointRow, pinpointCol = holdRow, holdCol
+    selectedDrag = true
 
     local cell = board.grid[pinpointRow][pinpointCol]
-    -- TODO: Check dog
-    local count = popcount4(cell)
-    if count == 2 then
-      if cell % 16 == 1 + 4 or cell % 16 == 2 + 8 then selectedItem = 1
-      else selectedItem = 2 end
-    elseif count == 3 then selectedItem = 3
-    elseif count == 4 then selectedItem = 4
+    local dog = cellDog(cell)
+    if dog ~= 0 then
+      selectedItem = 5
+      selectedValue = dog
+      board.grid[pinpointRow][pinpointCol] = cell - dog * 16
+    else
+      local count = popcount4(cell)
+      if count == 2 then
+        if cell % 16 == 1 + 4 or cell % 16 == 2 + 8 then selectedItem = 1
+        else selectedItem = 2 end
+      elseif count == 3 then selectedItem = 3
+      elseif count == 4 then selectedItem = 4
+      end
+      selectedValue = cell % 16
+      board.grid[pinpointRow][pinpointCol] = Board.EMPTY
     end
-    selectedValue = cell % 16
-    board.grid[pinpointRow][pinpointCol] = Board.EMPTY
+  end
+
+  local function rotateDogForPath(dog, cell)
+    while bit.band(cell, bit.lshift(1, dog - 1)) == 0 do
+      dog = dog % 4 + 1
+    end
+    return dog
   end
 
   s.move = function (x, y)
@@ -139,9 +167,23 @@ return function ()
     if pinpointingItem then
       pinpointingItem = false
       pinpointRow, pinpointCol = cellPos(x, y)
+      if not feasible[pinpointRow][pinpointCol] then
+        -- Prohibited cell. If the item has been dragged, recover it
+        -- to the original position
+        if selectedDrag then
+          pinpointRow, pinpointCol = holdRow, holdCol
+        end
+      end
+      -- Target location may be changed for recovery so re-check feasibility
       if feasible[pinpointRow][pinpointCol] then
         -- Put item down
-        board.grid[pinpointRow][pinpointCol] = Board.PATH + selectedValue
+        if selectedItem >= 1 and selectedItem <= 4 then
+          board.grid[pinpointRow][pinpointCol] = Board.PATH + selectedValue
+        elseif selectedItem == 5 then
+          local cell = board.grid[pinpointRow][pinpointCol]
+          board.grid[pinpointRow][pinpointCol] =
+            cell + rotateDogForPath(selectedValue, cell) * 16
+        end
         selectedItem = -1
       end
     elseif holdTime >= 0 then
@@ -150,9 +192,9 @@ return function ()
       -- Rotate the dog if there is one, otherwise the path
       local cell = board.grid[holdRow][holdCol]
       local sides = cell % 16
-      local dog = bit.arshift(cell, 4) % 16
+      local dog = cellDog(cell)
       if dog >= 1 and dog <= 4 then
-        local newDog = dog % 4 + 1
+        local newDog = rotateDogForPath(dog % 4 + 1, cell)
         cell = cell + (newDog - dog) * 16
       else
         local newSides = (sides * 2) % 16 + (bit.arshift(cell, 3) % 2)
@@ -216,7 +258,7 @@ return function ()
               )
             end
           end
-          local dog = bit.arshift(board.grid[r][c], 4) % 16
+          local dog = cellDog(board.grid[r][c])
           if dog ~= 0 then
             local x1 = (pts[dog][1] - 0.5) * 0.7
             local y1 = (pts[dog][2] - 0.5) * 0.7

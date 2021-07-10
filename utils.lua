@@ -12,3 +12,7 @@ function ctz4(x)
   elseif x == 8 then return 3
   else return -1 end
 end
+
+function cellDog(cell)
+  return bit.arshift(cell, 4) % 16
+end
