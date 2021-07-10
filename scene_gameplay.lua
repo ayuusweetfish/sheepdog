@@ -240,7 +240,7 @@ return function ()
 
   s.move = function (x, y)
     if btnsStorehouse.move(x, y) then
-      if x >= STORE_WIDTH then
+      if x >= STORE_WIDTH and selectedItem >= 1 and selectedItem <= 5 then
         -- Treated as if the button has been triggered
         btnsStorehouse.trigger()
         -- Also, we are dragging now
