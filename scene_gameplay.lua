@@ -55,6 +55,24 @@ return function ()
     end
   end
 
+  -- Animations on each cell, {type, remaining time}
+  local cellAnim = {}
+  for r = 1, board.h do
+    cellAnim[r] = {}
+    for c = 1, board.w do cellAnim[r][c] = {0, 0} end
+  end
+  local ANIM_TYPE_PUT = 1
+  local ANIM_TYPE_REMOVE = 2
+  local ANIM_TYPE_ROTATE = 3
+  local ANIM_DUR = 120
+  local function easeProgRem(t)
+    local x = t / ANIM_DUR
+    return (math.exp(8 * x) - 1) / (math.exp(8) - 1)
+  end
+  local function easeProg(t)
+    return 1 - easeProgRem(t)
+  end
+
   local btnsStorehouse = buttons()
   local itemSprites = {
     'path1', 'path2', 'path3', 'path4', 'ice-cream_1f368'
@@ -186,6 +204,7 @@ return function ()
       selectedItem = pathCellType(cell)
       selectedValue = cell % 16
       board.grid[pinpointRow][pinpointCol] = Board.EMPTY
+      cellAnim[pinpointRow][pinpointCol] = {ANIM_TYPE_REMOVE, ANIM_DUR}
     end
     updateFeasiblility()
   end
@@ -267,6 +286,7 @@ return function ()
           itemCount[selectedItem] = itemCount[selectedItem] - 1
           btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0)
         end
+        cellAnim[pinpointRow][pinpointCol] = {ANIM_TYPE_PUT, ANIM_DUR}
         selectedItem = -1
       end
       if selectedDrag and holdRow == -1 then
@@ -285,6 +305,7 @@ return function ()
       else
         local newSides = (sides * 2) % 16 + (bit.arshift(cell, 3) % 2)
         cell = cell + (newSides - sides)
+        cellAnim[holdRow][holdCol] = {ANIM_TYPE_ROTATE, ANIM_DUR}
       end
       board.grid[holdRow][holdCol] = cell
     end
@@ -299,6 +320,18 @@ return function ()
         convertHoldToPinpoint()
       end
     end
+    -- Update animations
+    for r = 1, board.h do
+      for c = 1, board.w do
+        if cellAnim[r][c][1] ~= 0 then
+          cellAnim[r][c][2] = cellAnim[r][c][2] - 1
+          if cellAnim[r][c][2] == 0 then
+            cellAnim[r][c][1] = 0
+          end
+        end
+      end
+    end
+    -- Update board
     if boardRunning then board.update() end
   end
 
@@ -336,9 +369,12 @@ return function ()
           if ty == 0 then
             -- TODO: Handle sheepfolds with one inlet
           else
-            local r = pathCellRotation(board.grid[r][c])
+            local rotation = pathCellRotation(board.grid[r][c])
+            if cellAnim[r][c][1] == ANIM_TYPE_ROTATE then
+              rotation = rotation - easeProgRem(cellAnim[r][c][2]) * math.pi / 2
+            end
             love.graphics.setColor(1, 1, 1)
-            sprites.draw('path' .. ty, xCell, yCell, r, CELL_SIZE, CELL_SIZE)
+            sprites.draw('path' .. ty, xCell, yCell, rotation, CELL_SIZE, CELL_SIZE)
           end
           -- Draw dog
           local pts = {{0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}}
@@ -373,6 +409,26 @@ return function ()
             love.graphics.circle('fill',
               xCell + CELL_SIZE / 2, yCell + CELL_SIZE / 2, CELL_SIZE / 3)
           end
+        end
+      end
+    end
+
+    -- Put/remove animations
+    for r = 1, board.h do
+      for c = 1, board.w do
+        if cellAnim[r][c][1] == ANIM_TYPE_PUT or 
+           cellAnim[r][c][1] == ANIM_TYPE_REMOVE
+        then
+          local sprite = (cellAnim[r][c][1] == ANIM_TYPE_PUT and 'puff' or 'pop')
+          local prog = easeProg(cellAnim[r][c][2])
+          local size = CELL_SIZE * (1.1 + prog * 0.9)
+          love.graphics.setColor(1, 1, 1,
+            cellAnim[r][c][2] / ANIM_DUR *
+              (cellAnim[r][c][1] == ANIM_TYPE_PUT and 0.3 or 0.7))
+          sprites.draw(sprite,
+            xStart + (c - 1) * CELL_SIZE + (CELL_SIZE - size) / 2,
+            yStart + (r - 1) * CELL_SIZE + (CELL_SIZE - size) / 2,
+            0, size, size)
         end
       end
     end
