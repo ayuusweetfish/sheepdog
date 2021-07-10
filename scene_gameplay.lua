@@ -14,6 +14,7 @@ return function ()
   local s = {}
 
   local board = Board.create(1)
+  local itemCount = {}
 
   -- Selected storehouse item and feasible regions
   local selectedItem = -1
@@ -73,6 +74,14 @@ return function ()
     )
   end
 
+  local function resetItemCount()
+    for i = 1, 5 do
+      itemCount[i] = board.itemCount[i]
+      btnsStorehouse.enable(i, itemCount[i] > 0)
+    end
+  end
+  resetItemCount()
+
   local boardRunning = false
 
   -- Run button
@@ -91,6 +100,7 @@ return function ()
     function ()
       boardRunning = false
       board.reset()
+      resetItemCount()
     end
   )
 
@@ -107,6 +117,8 @@ return function ()
 
   local holdTime = -1
   local holdRow, holdCol = -1, -1
+
+  local dragToStorehouse = false
 
   s.press = function (x, y)
     if btnsStorehouse.press(x, y) then return end
@@ -162,6 +174,7 @@ return function ()
     local r, c = cellPos(x, y)
     if pinpointingItem then
       pinpointRow, pinpointCol = r, c
+      dragToStorehouse = (x < STORE_WIDTH)
     elseif holdTime >= 0 then
       if r ~= holdRow or c ~= holdCol then
         convertHoldToPinpoint()
@@ -174,15 +187,29 @@ return function ()
     if pinpointingItem then
       pinpointingItem = false
       pinpointRow, pinpointCol = cellPos(x, y)
-      if not feasible[pinpointRow][pinpointCol] then
+      dragToStorehouse = (x < STORE_WIDTH)
+      local destFeasible =
+        pinpointRow >= 1 and pinpointRow <= board.h and
+        pinpointCol >= 1 and pinpointCol <= board.w and
+        feasible[pinpointRow][pinpointCol]
+      if not destFeasible then
         -- Prohibited cell. If the item has been dragged, recover it
         -- to the original position
         if selectedDrag then
-          pinpointRow, pinpointCol = holdRow, holdCol
+          if dragToStorehouse then
+            -- Remove
+            itemCount[selectedItem] = itemCount[selectedItem] + 1
+            btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0)
+            selectedItem = -1
+            destFeasible = false
+          else
+            pinpointRow, pinpointCol = holdRow, holdCol
+            destFeasible = true
+          end
         end
       end
       -- Target location may be changed for recovery so re-check feasibility
-      if feasible[pinpointRow][pinpointCol] then
+      if destFeasible then
         -- Put item down
         if selectedItem >= 1 and selectedItem <= 4 then
           board.grid[pinpointRow][pinpointCol] = Board.PATH + selectedValue
@@ -190,6 +217,10 @@ return function ()
           local cell = board.grid[pinpointRow][pinpointCol]
           board.grid[pinpointRow][pinpointCol] =
             cell + rotateDogForPath(selectedValue, cell) * 16
+        end
+        if not selectedDrag then
+          itemCount[selectedItem] = itemCount[selectedItem] - 1
+          btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0)
         end
         selectedItem = -1
       end
@@ -238,7 +269,7 @@ return function ()
   end
 
   s.draw = function ()
-    btnsStorehouse.draw()
+    -- Grid
     for r = 1, board.h do
       for c = 1, board.w do
         if board.grid[r][c] == Board.ENTRY then
@@ -317,27 +348,52 @@ return function ()
 
     -- Pinpoint indicators
     if pinpointingItem then
-      if pinpointRow >= 1 and pinpointRow <= board.h and
-         pinpointCol >= 1 and pinpointCol <= board.w and
-         feasible[pinpointRow][pinpointCol]
-      then
-        love.graphics.setColor(0.8, 0.8, 0.4, 0.6)
+      if dragToStorehouse then
+        -- Maybe display a hint?
       else
-        love.graphics.setColor(0.9, 0.5, 0.4, 0.6)
+        if pinpointRow >= 1 and pinpointRow <= board.h and
+           pinpointCol >= 1 and pinpointCol <= board.w and
+           feasible[pinpointRow][pinpointCol]
+        then
+          love.graphics.setColor(0.8, 0.8, 0.4, 0.6)
+        else
+          love.graphics.setColor(0.9, 0.5, 0.4, 0.6)
+        end
+        love.graphics.rectangle('fill',
+          xStart + (pinpointCol - 1) * CELL_SIZE,
+          0,
+          CELL_SIZE, H
+        )
+        love.graphics.rectangle('fill',
+          STORE_WIDTH,
+          yStart + (pinpointRow - 1) * CELL_SIZE,
+          W - STORE_WIDTH, CELL_SIZE
+        )
       end
-      love.graphics.rectangle('fill',
-        xStart + (pinpointCol - 1) * CELL_SIZE,
-        0,
-        CELL_SIZE, H
-      )
-      love.graphics.rectangle('fill',
-        STORE_WIDTH,
-        yStart + (pinpointRow - 1) * CELL_SIZE,
-        W - STORE_WIDTH, CELL_SIZE
-      )
     end
 
     for _, sh in ipairs(board.sheep) do drawSheep(sh) end
+
+    -- Storehouse buttons
+    -- First, indicator
+    if selectedItem ~= -1 and not selectedDrag then
+      love.graphics.setColor(0.6, 1, 0.7)
+      love.graphics.rectangle('fill',
+        BORDER_PAD,
+        BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (selectedItem - 1),
+        ITEM_SIZE, ITEM_SIZE)
+    end
+    btnsStorehouse.draw()
+
+    -- Text
+    love.graphics.setColor(0, 0, 0)
+    for i = 1, 5 do
+      love.graphics.print(tostring(itemCount[i]),
+        BORDER_PAD + ITEM_SIZE,
+        BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
+      )
+    end
+
     love.graphics.setColor(1, 1, 1)
   end
 

@@ -81,6 +81,8 @@ function Board.create(level)
     {2, 4},
   }
 
+  local itemCount = {4, 3, 2, 1, 4}
+
   local sheep = {}
   -- flock: flock index
   -- eta: time until arrival
@@ -212,6 +214,7 @@ function Board.create(level)
     w = w, h = h,
     gridInit = gridInit,
     sheepFlocks = sheepFlocks,
+    itemCount = itemCount,
     grid = grid,
     sheep = sheep,
     update = update,

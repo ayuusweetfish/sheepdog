@@ -23,12 +23,18 @@ return function ()
       sprite = sprite,
       sx = sx, sy = sy,
       fn = fn,
+      enabled = true,
     }
+  end
+
+  g.enable = function (i, enable)
+    btns[i].enabled = enable
+    if not enable and selected == i then selected = -1 end
   end
 
   g.press = function (x, y)
     for i, b in ipairs(btns) do
-      if inRect(x, y, b.x, b.y, b.w, b.h) then
+      if b.enabled and inRect(x, y, b.x, b.y, b.w, b.h) then
         selected = i
         ptInside = true
         return true
@@ -57,7 +63,9 @@ return function ()
 
   g.draw = function ()
     for i, b in ipairs(btns) do
-      if i == selected and ptInside then
+      if not b.enabled then
+        love.graphics.setColor(1, 1, 1, 0.4)
+      elseif i == selected and ptInside then
         love.graphics.setColor(0.8, 0.8, 0.8)
       else
         love.graphics.setColor(1, 1, 1)
