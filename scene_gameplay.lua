@@ -85,6 +85,31 @@ return function ()
               )
             end
           end
+          local dog = bit.arshift(board.grid[r][c], 4) % 16
+          if dog ~= 0 then
+            local x1 = (pts[dog][1] - 0.5) * 0.7
+            local y1 = (pts[dog][2] - 0.5) * 0.7
+            love.graphics.setColor(1, 0.4, 0)
+            love.graphics.setLineWidth(2)
+            love.graphics.line(
+              xCell + CELL_SIZE * 0.5,
+              yCell + CELL_SIZE * 0.5,
+              xCell + CELL_SIZE * (0.5 + x1),
+              yCell + CELL_SIZE * (0.5 + y1)
+            )
+            love.graphics.line(
+              xCell + CELL_SIZE * (0.5 + x1),
+              yCell + CELL_SIZE * (0.5 + y1),
+              xCell + CELL_SIZE * (0.5 + x1 - (x1 + y1) * 0.4),
+              yCell + CELL_SIZE * (0.5 + y1 - (x1 + y1) * 0.4)
+            )
+            love.graphics.line(
+              xCell + CELL_SIZE * (0.5 + x1),
+              yCell + CELL_SIZE * (0.5 + y1),
+              xCell + CELL_SIZE * (0.5 + x1 - (x1 - y1) * 0.4),
+              yCell + CELL_SIZE * (0.5 + y1 + (x1 - y1) * 0.4)
+            )
+          end
           local ty = math.floor(board.grid[r][c] / Board.PATH)
           if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
             love.graphics.setColor(0.9, 1.1 - (ty - Board.TYPE_SHEEPFOLD + 1) * 0.2, 0.9)

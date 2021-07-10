@@ -70,6 +70,8 @@ function Board.create(level)
   grid[1][3] = Board.PATH + 2 + 8
   grid[1][2] = Board.PATH + 2 + 8
   grid[1][1] = Board.PATH * Board.TYPE_SHEEPFOLD + 2
+  grid[5][5] = Board.PATH + 1 + 2 + 4 + 3*16
+  grid[6][5] = Board.PATH + 1 + 2 + 4 + 1*16
 
   local sheep = {}
   -- flock: flock index
