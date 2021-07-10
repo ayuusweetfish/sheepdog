@@ -380,10 +380,18 @@ return function ()
         local yCell = yStart + (r - 1) * CELL_SIZE
         love.graphics.rectangle('fill', xCell, yCell, CELL_SIZE, CELL_SIZE)
         if board.grid[r][c] >= Board.PATH then
+          local pts = {{0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}}
           -- Draw path
           local ty = pathCellType(board.grid[r][c])
           if ty == 0 then
             -- TODO: Handle sheepfolds with one inlet
+            love.graphics.setColor(1, 0.8, 0.6)
+            love.graphics.setLineWidth(CELL_SIZE / 4)
+            local dir = ctz4(board.grid[r][c] % 16)
+            love.graphics.line(
+              xCell + CELL_SIZE * 0.5, yCell + CELL_SIZE * 0.5,
+              xCell + CELL_SIZE * pts[dir + 1][1],
+              yCell + CELL_SIZE * pts[dir + 1][2])
           else
             local rotation = pathCellRotation(board.grid[r][c])
             for _, anim in ipairs(cellAnim) do
@@ -395,7 +403,6 @@ return function ()
             sprites.draw('path' .. ty, xCell, yCell, rotation, CELL_SIZE, CELL_SIZE)
           end
           -- Draw dog
-          local pts = {{0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}}
           local dog = cellDog(board.grid[r][c])
           if dog ~= 0 then
             local x1 = (pts[dog][1] - 0.5) * 0.7
