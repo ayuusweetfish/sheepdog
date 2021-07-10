@@ -47,7 +47,6 @@ function Board.create(level)
   grid[9][2] = Board.PATH + 1 + 4
   grid[8][2] = Board.PATH + 1 + 4
   grid[7][2] = Board.PATH + 1 + 4
-  grid[6][2] = Board.PATH + 1 + 4
   grid[5][2] = Board.PATH + 1 + 4
   grid[4][2] = Board.PATH + 1 + 4
   grid[3][2] = Board.PATH + 2 + 4
@@ -125,20 +124,15 @@ function Board.create(level)
           sh.prog = 0
           sh.sheepfold = false
         end
-      elseif sh.dir ~= -1 then
-        sh.prog = sh.prog + 1
+      else
+        if sh.prog < Board.CELL_SUBDIV then
+          sh.prog = sh.prog + 1
+        end
+        -- Arrived at destination?
+        -- This check is repeated for stuck ones
         if sh.prog == Board.CELL_SUBDIV then
-          -- Arrived at destination!
-          sh.from = sh.to
-          sh.prog = 0
-
           -- Current cell
-          local cell = grid[sh.from[1]][sh.from[2]]
-
-          -- Next step?
-          if cell < Board.PATH then
-            error('Going to a non-path cell!')
-          end
+          local cell = grid[sh.to[1]][sh.to[2]]
 
           -- Move
           local dir = -1
@@ -169,7 +163,7 @@ function Board.create(level)
 
           -- Check for viability
           if dir ~= -1 then
-            local r1, c1 = move(sh.from, dir)
+            local r1, c1 = move(sh.to, dir)
 
             -- Destination has no corresponding inlet?
             if r1 < 1 or r1 > h or c1 < 1 or c1 > w or
@@ -184,13 +178,15 @@ function Board.create(level)
             end
           end
           -- Move
-          sh.dir = dir
           if dir ~= -1 then
-            local r1, c1 = move(sh.from, dir)
+            local r1, c1 = move(sh.to, dir)
+            sh.dir = dir
+            sh.from = sh.to
             sh.to = {r1, c1}
+            sh.prog = 0
             occupy[sh.flock * w * h + r1 * w + c1] = true
           elseif not sh.sheepfold then
-            occupy[sh.flock * w * h + sh.from[1] * w + sh.from[2]] = true
+            occupy[sh.flock * w * h + sh.to[1] * w + sh.to[2]] = true
           end
         end
       end
