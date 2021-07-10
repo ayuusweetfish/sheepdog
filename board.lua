@@ -44,14 +44,15 @@ function Board.create(level)
   end
   grid[10][1] = Board.PATH + 2 + 8
   grid[10][2] = Board.PATH + 1 + 8
-  grid[9][2] = Board.PATH + 1 + 4
   grid[8][2] = Board.PATH + 1 + 4
   grid[7][2] = Board.PATH + 1 + 4
+  grid[6][2] = Board.PATH + 1 + 4
   grid[5][2] = Board.PATH + 1 + 4
   grid[4][2] = Board.PATH + 1 + 4
   grid[3][2] = Board.PATH + 2 + 4
   grid[3][3] = Board.PATH + 1 + 8
   grid[2][3] = Board.PATH + 2 + 4
+  grid[6][3] = Board.PATH * (Board.TYPE_SHEEPFOLD + 1) + 1
   grid[2][4] = Board.PATH + 2 + 8
   grid[2][5] = Board.PATH + 4 + 8
   grid[3][5] = Board.PATH + 1 + 4
@@ -112,18 +113,30 @@ function Board.create(level)
   local function update()
     -- index: flock * w * h + r * w + c, value: true
     local occupy = {}
+    local flockLargestETA = {}
 
     for _, sh in ipairs(sheep) do
       if sh.eta > 0 then
         sh.eta = sh.eta - 1
         if sh.eta == 0 then
-          -- Appear!
-          sh.from = {h, 0}
-          sh.to = {h, 1}
-          sh.dir = 1
-          sh.prog = 0
-          sh.sheepfold = false
+          -- Appear, if not blocked
+          if not occupy[sh.flock * w * h + h * w + 1] then
+            sh.from = {h, 0}
+            sh.to = {h, 1}
+            sh.dir = 1
+            sh.prog = 0
+            sh.sheepfold = false
+          else
+            sh.eta = 1
+          end
         end
+        -- Ensure that current sheep has an ETA no smaller than
+        -- that of any previous one in the same flock + CELL_SUBDIV
+        local largest = flockLargestETA[sh.flock]
+        if largest ~= nil and sh.eta < largest + Board.CELL_SUBDIV then
+          sh.eta = largest + Board.CELL_SUBDIV
+        end
+        flockLargestETA[sh.flock] = sh.eta
       else
         if sh.prog < Board.CELL_SUBDIV then
           sh.prog = sh.prog + 1
@@ -184,11 +197,13 @@ function Board.create(level)
             sh.from = sh.to
             sh.to = {r1, c1}
             sh.prog = 0
-            occupy[sh.flock * w * h + r1 * w + c1] = true
-          elseif not sh.sheepfold then
-            occupy[sh.flock * w * h + sh.to[1] * w + sh.to[2]] = true
           end
         end
+      end
+      -- Mark destination cell as occupied
+      if not sh.sheepfold and sh.to ~= nil then
+        if occupy[sh.flock * w * h + sh.to[1] * w + sh.to[2]] then print('!!!') end
+        occupy[sh.flock * w * h + sh.to[1] * w + sh.to[2]] = true
       end
     end
   end
