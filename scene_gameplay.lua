@@ -32,6 +32,26 @@ return function ()
       board.gridInit[r][c] == Board.EMPTY
   end
 
+  local function updateFeasiblility()
+    if selectedItem >= 1 and selectedItem <= 4 then
+      -- Path cells can be placed in any empty cell
+      for r = 1, board.h do
+        for c = 1, board.w do
+          feasible[r][c] = (board.grid[r][c] == Board.EMPTY)
+        end
+      end
+    elseif selectedItem == 5 then
+      -- Dogs can be placed in junctions
+      for r = 1, board.h do
+        for c = 1, board.w do
+          feasible[r][c] = (board.grid[r][c] >= Board.PATH and
+            popcount4(board.grid[r][c]) >= 3 and
+            cellDog(board.grid[r][c]) == 0)
+        end
+      end
+    end
+  end
+
   local btnsStorehouse = buttons()
   for i = 1, 5 do
     btnsStorehouse.add(
@@ -48,23 +68,7 @@ return function ()
         elseif selectedItem == 4 then selectedValue = 1 + 2 + 4 + 8
         elseif selectedItem == 5 then selectedValue = 1
         end
-        if selectedItem >= 1 and selectedItem <= 4 then
-          -- Path cells can be placed in any empty cell
-          for r = 1, board.h do
-            for c = 1, board.w do
-              feasible[r][c] = (board.grid[r][c] == Board.EMPTY)
-            end
-          end
-        elseif selectedItem == 5 then
-          -- Dogs can be placed in junctions
-          for r = 1, board.h do
-            for c = 1, board.w do
-              feasible[r][c] = (board.grid[r][c] >= Board.PATH and
-                popcount4(board.grid[r][c]) >= 3 and
-                cellDog(board.grid[r][c]) == 0)
-            end
-          end
-        end
+        updateFeasiblility()
       end
     )
   end
@@ -111,7 +115,9 @@ return function ()
       if selectedItem ~= -1 then
         pinpointingItem = true
         pinpointRow, pinpointCol = r, c
-      elseif editable(r, c) and board.grid[r][c] ~= Board.EMPTY then
+      elseif (editable(r, c) and board.grid[r][c] ~= Board.EMPTY)
+          or cellDog(board.grid[r][c]) ~= 0
+      then
         holdTime = 0
         holdRow, holdCol = r, c
       end
@@ -141,6 +147,7 @@ return function ()
       selectedValue = cell % 16
       board.grid[pinpointRow][pinpointCol] = Board.EMPTY
     end
+    updateFeasiblility()
   end
 
   local function rotateDogForPath(dog, cell)

@@ -56,20 +56,20 @@ function Board.create(level)
   grid[2][4] = Board.PATH + 2 + 8
   grid[2][5] = Board.PATH + 4 + 8
   grid[3][5] = Board.PATH + 1 + 4
-  grid[4][5] = Board.PATH + 1 + 2 + 8 + 2*16
+  grid[4][5] = Board.PATH + 1 + 2 + 8
   grid[4][4] = Board.PATH + 2 + 8
   grid[4][6] = Board.PATH + 1 + 8
   grid[3][6] = Board.PATH + 1 + 4
   grid[2][6] = Board.PATH + 1 + 4
-  grid[1][6] = Board.PATH + 15 + 4*16
+  grid[1][6] = Board.PATH + 15
   grid[1][7] = Board.PATH + 2 + 8
   grid[1][5] = Board.PATH + 2 + 8
   grid[1][4] = Board.PATH + 2 + 8
   grid[1][3] = Board.PATH + 2 + 8
   grid[1][2] = Board.PATH + 2 + 8
   grid[1][1] = Board.PATH * Board.TYPE_SHEEPFOLD + 2
-  grid[5][5] = Board.PATH + 1 + 2 + 4 + 3*16
-  grid[6][5] = Board.PATH + 1 + 2 + 4 + 1*16
+  grid[5][5] = Board.PATH + 1 + 2 + 4
+  grid[6][5] = Board.PATH + 1 + 2 + 4
 
   local gridInit = {}
   cloneGrid(gridInit, grid)
