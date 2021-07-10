@@ -10,13 +10,17 @@ return function ()
   local selected = -1
   local ptInside = false
 
-  g.add = function (x, y, w, h, sprite, fn)
-    local sx, sy = 1, 1
+  local function processSprite(sprite, w, h)
     if type(sprite) == 'string' then
       sprite = love.graphics.newImage(sprite)
     end
     local iw, ih = sprite:getDimensions()
     sx, sy = w / iw, h / ih
+    return sprite, sx, sy
+  end
+
+  g.add = function (x, y, w, h, sprite, fn)
+    local sprite, sx, sy = processSprite(sprite, w, h)
     btns[#btns + 1] = {
       x = x, y = y,
       w = w, h = h,
@@ -25,11 +29,19 @@ return function ()
       fn = fn,
       enabled = true,
     }
+    return #btns
   end
 
   g.enable = function (i, enable)
     btns[i].enabled = enable
     if not enable and selected == i then selected = -1 end
+  end
+
+  g.sprite = function (i, sprite)
+    local sprite, sx, sy = processSprite(sprite, btns[i].w, btns[i].h)
+    btns[i].sprite = sprite
+    btns[i].sx = sx
+    btns[i].sy = sy
   end
 
   -- Immediately triggers the selected button if there is one,

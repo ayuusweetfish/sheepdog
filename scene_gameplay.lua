@@ -1,5 +1,5 @@
 require 'utils'
-local popcount4, ctz4, cellDog = popcount4, ctz4, cellDog
+local popcount4, ctz4, cellDog, cloneGrid = popcount4, ctz4, cellDog, cloneGrid
 
 local Board = require 'board'
 local buttons = require 'buttons'
@@ -110,18 +110,37 @@ return function ()
   local boardRunning = false
 
   -- Run button
-  btnsStorehouse.add(
+  local runButton
+  local savedGrid = {}
+  local savedItemCount = {}
+  runButton = btnsStorehouse.add(
     BORDER_PAD, H - BORDER_PAD - 50, 50, 50,
-    'black-right-pointing-triangle_25b6.png',
+    'res/black-right-pointing-triangle_25b6.png',
     function ()
       boardRunning = not boardRunning
       selectedItem = -1
+      btnsStorehouse.sprite(runButton,
+        boardRunning and 'res/black-left-pointing-double-triangle_23ea.png' or
+        'res/black-right-pointing-triangle_25b6.png')
+      if boardRunning then
+        -- Save board state
+        cloneGrid(savedGrid, board.grid)
+        for i = 1, 5 do savedItemCount[i] = itemCount[i] end
+      else
+        board.reset()
+        -- Restore board state
+        cloneGrid(board.grid, savedGrid)
+        for i = 1, 5 do
+          itemCount[i] = savedItemCount[i]
+          btnsStorehouse.enable(i, itemCount[i] > 0)
+        end
+      end
     end
   )
   -- Reset button
   btnsStorehouse.add(
     BORDER_PAD + 50, H - BORDER_PAD - 50, 50, 50,
-    'leftwards-arrow-with-hook_21a9.png',
+    'res/leftwards-arrow-with-hook_21a9.png',
     function ()
       boardRunning = false
       board.reset()

@@ -1,5 +1,5 @@
 require 'utils'
-local popcount4, ctz4, cellDog = popcount4, ctz4, cellDog
+local popcount4, ctz4, cellDog, cloneGrid = popcount4, ctz4, cellDog, cloneGrid
 
 local utf8 = require 'utf8'
 
@@ -27,16 +27,6 @@ local MOVE = {
 }
 local function move(from, dir)
   return from[1] + MOVE[dir][1], from[2] + MOVE[dir][2]
-end
-
-local function cloneGrid(dst, grid)
-  for i = 1, #dst do dst[i] = nil end
-  for i, row in ipairs(grid) do
-    local row1 = {}
-    for j, col in ipairs(row) do row1[j] = col end
-    dst[i] = row1
-  end
-  return grid1
 end
 
 function Board.create(level)

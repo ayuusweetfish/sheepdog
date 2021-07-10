@@ -16,3 +16,13 @@ end
 function cellDog(cell)
   return bit.arshift(cell, 4) % 16
 end
+
+function cloneGrid(dst, grid)
+  for i = 1, #dst do dst[i] = nil end
+  for i, row in ipairs(grid) do
+    local row1 = {}
+    for j, col in ipairs(row) do row1[j] = col end
+    dst[i] = row1
+  end
+  return grid1
+end
