@@ -61,6 +61,10 @@ return function ()
       ITEM_SIZE, ITEM_SIZE,
       'ice-cream_1f368.png',
       function ()
+        if selectedItem == i then
+          selectedItem = -1
+          return
+        end
         selectedItem = i
         selectedDrag = false
         if selectedItem == 1 then selectedValue = 1 + 4
@@ -126,14 +130,15 @@ return function ()
       local r, c = cellPos(x, y)
       if selectedItem ~= -1 then
         pinpointingItem = true
-        pinpointRow, pinpointCol = r, c
       elseif (editable(r, c) and board.grid[r][c] ~= Board.EMPTY)
-          or cellDog(board.grid[r][c]) ~= 0
+          or (r >= 1 and r <= board.h and c >= 1 and c <= board.w and
+              cellDog(board.grid[r][c]) ~= 0)
       then
         holdTime = 0
         holdRow, holdCol = r, c
       end
     end
+    s.move(x, y)
   end
 
   local function convertHoldToPinpoint()
@@ -170,11 +175,23 @@ return function ()
   end
 
   s.move = function (x, y)
-    if btnsStorehouse.move(x, y) then return end
+    if btnsStorehouse.move(x, y) then
+      if x >= STORE_WIDTH then
+        -- Treated as if the button has been triggered
+        btnsStorehouse.trigger()
+        -- Also, we are dragging now
+        selectedDrag = true
+        pinpointingItem = true
+        holdRow, holdCol = -1, -1
+      end
+      return
+    end
     local r, c = cellPos(x, y)
     if pinpointingItem then
       pinpointRow, pinpointCol = r, c
-      dragToStorehouse = (x < STORE_WIDTH)
+      dragToStorehouse = (x < STORE_WIDTH or
+        pinpointRow < -1 or pinpointRow > board.h + 2 or
+        pinpointCol < -1 or pinpointCol > board.w + 2)
     elseif holdTime >= 0 then
       if r ~= holdRow or c ~= holdCol then
         convertHoldToPinpoint()
@@ -187,22 +204,28 @@ return function ()
     if pinpointingItem then
       pinpointingItem = false
       pinpointRow, pinpointCol = cellPos(x, y)
-      dragToStorehouse = (x < STORE_WIDTH)
+      dragToStorehouse = (x < STORE_WIDTH or
+        pinpointRow < -1 or pinpointRow > board.h + 2 or
+        pinpointCol < -1 or pinpointCol > board.w + 2)
       local destFeasible =
         pinpointRow >= 1 and pinpointRow <= board.h and
         pinpointCol >= 1 and pinpointCol <= board.w and
         feasible[pinpointRow][pinpointCol]
+      -- selectedDrag and holdRow == -1:
+      -- this is the case when dragging out of the storehouse
       if not destFeasible then
         -- Prohibited cell. If the item has been dragged, recover it
         -- to the original position
         if selectedDrag then
           if dragToStorehouse then
-            -- Remove
-            itemCount[selectedItem] = itemCount[selectedItem] + 1
-            btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0)
+            if holdRow ~= -1 then
+              -- Remove from the board and back into the storehouse
+              itemCount[selectedItem] = itemCount[selectedItem] + 1
+              btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0)
+            end
             selectedItem = -1
             destFeasible = false
-          else
+          elseif holdRow ~= -1 then -- Otherwise may be dragging out of the storehouse
             pinpointRow, pinpointCol = holdRow, holdCol
             destFeasible = true
           end
@@ -218,10 +241,13 @@ return function ()
           board.grid[pinpointRow][pinpointCol] =
             cell + rotateDogForPath(selectedValue, cell) * 16
         end
-        if not selectedDrag then
+        if not selectedDrag or holdRow == -1 then
           itemCount[selectedItem] = itemCount[selectedItem] - 1
           btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0)
         end
+        selectedItem = -1
+      end
+      if selectedDrag and holdRow == -1 then
         selectedItem = -1
       end
     elseif holdTime >= 0 then
@@ -349,27 +375,25 @@ return function ()
     -- Pinpoint indicators
     if pinpointingItem then
       if dragToStorehouse then
-        -- Maybe display a hint?
+        love.graphics.setColor(0.9, 0.5, 0.4, 0.1)
+      elseif pinpointRow >= 1 and pinpointRow <= board.h and
+         pinpointCol >= 1 and pinpointCol <= board.w and
+         feasible[pinpointRow][pinpointCol]
+      then
+        love.graphics.setColor(0.8, 0.8, 0.4, 0.6)
       else
-        if pinpointRow >= 1 and pinpointRow <= board.h and
-           pinpointCol >= 1 and pinpointCol <= board.w and
-           feasible[pinpointRow][pinpointCol]
-        then
-          love.graphics.setColor(0.8, 0.8, 0.4, 0.6)
-        else
-          love.graphics.setColor(0.9, 0.5, 0.4, 0.6)
-        end
-        love.graphics.rectangle('fill',
-          xStart + (pinpointCol - 1) * CELL_SIZE,
-          0,
-          CELL_SIZE, H
-        )
-        love.graphics.rectangle('fill',
-          STORE_WIDTH,
-          yStart + (pinpointRow - 1) * CELL_SIZE,
-          W - STORE_WIDTH, CELL_SIZE
-        )
+        love.graphics.setColor(0.9, 0.5, 0.4, 0.6)
       end
+      love.graphics.rectangle('fill',
+        xStart + (pinpointCol - 1) * CELL_SIZE,
+        0,
+        CELL_SIZE, H
+      )
+      love.graphics.rectangle('fill',
+        STORE_WIDTH,
+        yStart + (pinpointRow - 1) * CELL_SIZE,
+        W - STORE_WIDTH, CELL_SIZE
+      )
     end
 
     for _, sh in ipairs(board.sheep) do drawSheep(sh) end

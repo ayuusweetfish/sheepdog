@@ -32,6 +32,15 @@ return function ()
     if not enable and selected == i then selected = -1 end
   end
 
+  -- Immediately triggers the selected button if there is one,
+  -- regardless of current pointer status
+  g.trigger = function ()
+    if selected == -1 then return false end
+    btns[selected].fn()
+    selected = -1
+    ptInside = false
+  end
+
   g.press = function (x, y)
     for i, b in ipairs(btns) do
       if b.enabled and inRect(x, y, b.x, b.y, b.w, b.h) then
