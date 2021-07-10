@@ -56,12 +56,12 @@ return function ()
   end
 
   local btnsStorehouse = buttons()
+  local itemSprites = {
+    'path1', 'path2', 'path3', 'path4', 'ice-cream_1f368'
+  }
   for i = 1, 5 do
-    local sprite = 'res/ice-cream_1f368.png'
-    if i <= 4 then
-      sprite = love.graphics.newImage('res/path' .. i .. '.png')
-      sprite:setFilter('nearest', 'nearest')
-    end
+    local sprite = love.graphics.newImage('res/' .. itemSprites[i] .. '.png')
+    sprite:setFilter('nearest', 'nearest')
     btnsStorehouse.add(
       BORDER_PAD,
       BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
@@ -207,7 +207,6 @@ return function ()
         pinpointingItem = true
         holdRow, holdCol = -1, -1
       end
-      return
     end
     local r, c = cellPos(x, y)
     if pinpointingItem then
@@ -395,26 +394,39 @@ return function ()
 
     -- Pinpoint indicators
     if pinpointingItem then
+      local alpha   -- Opacity of the shadow sprite
       if dragToStorehouse then
+        -- Item will be moved back to the storehouse if dropped here
         love.graphics.setColor(0.9, 0.5, 0.4, 0.1)
+        alpha = 0.2
       elseif pinpointRow >= 1 and pinpointRow <= board.h and
          pinpointCol >= 1 and pinpointCol <= board.w and
          feasible[pinpointRow][pinpointCol]
       then
+        -- Feasible position
         love.graphics.setColor(0.8, 0.8, 0.4, 0.6)
+        alpha = 0.6
       else
+        -- Item will be restored to original position if dropped here
         love.graphics.setColor(0.9, 0.5, 0.4, 0.6)
+        alpha = 0.2
       end
-      love.graphics.rectangle('fill',
-        xStart + (pinpointCol - 1) * CELL_SIZE,
-        0,
-        CELL_SIZE, H
-      )
+      local xCell = xStart + (pinpointCol - 1) * CELL_SIZE
+      local yCell = yStart + (pinpointRow - 1) * CELL_SIZE
+      love.graphics.rectangle('fill', xCell, 0, CELL_SIZE, yCell)
+      love.graphics.rectangle('fill', xCell, yCell + CELL_SIZE, CELL_SIZE, H - (yCell + CELL_SIZE))
       love.graphics.rectangle('fill',
         STORE_WIDTH,
         yStart + (pinpointRow - 1) * CELL_SIZE,
         W - STORE_WIDTH, CELL_SIZE
       )
+      -- Item image
+      love.graphics.setColor(1, 1, 1, alpha)
+      sprites.draw(itemSprites[selectedItem],
+        xStart + (pinpointCol - 1) * CELL_SIZE,
+        yStart + (pinpointRow - 1) * CELL_SIZE,
+        selectedItem <= 4 and pathCellRotation(selectedValue) or 0,
+        CELL_SIZE, CELL_SIZE)
     end
 
     for _, sh in ipairs(board.sheep) do drawSheep(sh) end
