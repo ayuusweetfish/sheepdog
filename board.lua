@@ -1,3 +1,6 @@
+require 'utils'
+local popcount4, ctz4 = popcount4, ctz4
+
 local Board = {
   -- cell types
   EMPTY = 0,
@@ -22,27 +25,12 @@ local function move(from, dir)
   return from[1] + MOVE[dir][1], from[2] + MOVE[dir][2]
 end
 
-local popcountTable = {
-  [0] = 0, 1, 1, 2, 1, 2, 2, 3,
-        1, 2, 2, 3, 2, 3, 3, 4,
-}
-local function popcount4(x)
-  return popcountTable[x % 16]
-end
-local function ctz4(x)
-  if x == 1 then return 0
-  elseif x == 2 then return 1
-  elseif x == 4 then return 2
-  elseif x == 8 then return 3
-  else return -1 end
-end
-
-local function cloneGrid(grid)
-  local grid1 = {}
+local function cloneGrid(dst, grid)
+  for i = 1, #dst do dst[i] = nil end
   for i, row in ipairs(grid) do
     local row1 = {}
     for j, col in ipairs(row) do row1[j] = col end
-    grid1[i] = row1
+    dst[i] = row1
   end
   return grid1
 end
@@ -83,7 +71,8 @@ function Board.create(level)
   grid[5][5] = Board.PATH + 1 + 2 + 4 + 3*16
   grid[6][5] = Board.PATH + 1 + 2 + 4 + 1*16
 
-  local gridInit = grid
+  local gridInit = {}
+  cloneGrid(gridInit, grid)
 
   -- {flock index, count}
   local sheepFlocks = {
@@ -103,7 +92,7 @@ function Board.create(level)
 
   local function reset()
     -- Reset grid
-    grid = cloneGrid(gridInit)
+    cloneGrid(grid, gridInit)
     -- Reset sheep
     for k = 1, #sheep do sheep[k] = nil end
     local eta = 1

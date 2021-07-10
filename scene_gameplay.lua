@@ -1,3 +1,6 @@
+require 'utils'
+local popcount4, ctz4 = popcount4, ctz4
+
 local Board = require 'board'
 local buttons = require 'buttons'
 
@@ -12,6 +15,22 @@ return function ()
 
   local board = Board.create(1)
 
+  -- Selected storehouse item and feasible regions
+  local selectedItem = -1
+  local selectedValue = 0
+  local feasible = {}
+  for r = 1, board.h do
+    feasible[r] = {}
+    for c = 1, board.w do feasible[r][c] = false end
+  end
+
+  local function editable(r, c)
+    return
+      r >= 1 and r <= board.h and
+      c >= 1 and c <= board.w and
+      board.gridInit[r][c] == Board.EMPTY
+  end
+
   local btnsStorehouse = buttons()
   for i = 1, 5 do
     btnsStorehouse.add(
@@ -19,7 +38,20 @@ return function ()
       BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
       ITEM_SIZE, ITEM_SIZE,
       'ice-cream_1f368.png',
-      function () print('item ' .. i) end
+      function ()
+        selectedItem = i
+        if selectedItem == 1 then selectedValue = 1 + 4
+        elseif selectedItem == 2 then selectedValue = 1 + 2
+        elseif selectedItem == 3 then selectedValue = 1 + 2 + 4
+        elseif selectedItem == 4 then selectedValue = 1 + 2 + 4 + 8
+        -- TODO: dog
+        end
+        for r = 1, board.h do
+          for c = 1, board.w do
+            feasible[r][c] = (board.grid[r][c] == Board.EMPTY)
+          end
+        end
+      end
     )
   end
 
@@ -31,6 +63,7 @@ return function ()
     'black-right-pointing-triangle_25b6.png',
     function ()
       boardRunning = not boardRunning
+      selectedItem = -1
     end
   )
   -- Reset button
@@ -43,25 +76,103 @@ return function ()
     end
   )
 
+  local xStart = (W + STORE_WIDTH) / 2 - CELL_SIZE * board.w / 2
+  local yStart = H / 2 - CELL_SIZE * board.h / 2
+
+  local function cellPos(x, y)
+    return math.floor((y - yStart) / CELL_SIZE) + 1,
+           math.floor((x - xStart) / CELL_SIZE) + 1
+  end
+
+  local pinpointingItem = false
+  local pinpointRow, pinpointCol = -1, -1
+
+  local holdTime = -1
+  local holdRow, holdCol = -1, -1
+
   s.press = function (x, y)
     if btnsStorehouse.press(x, y) then return end
+    if x >= STORE_WIDTH then
+      local r, c = cellPos(x, y)
+      if selectedItem ~= -1 then
+        pinpointingItem = true
+        pinpointRow, pinpointCol = r, c
+      elseif editable(r, c) and board.grid[r][c] ~= Board.EMPTY then
+        holdTime = 0
+        holdRow, holdCol = r, c
+      end
+    end
+  end
+
+  local function convertHoldToPinpoint()
+    holdTime = -1
+    pinpointingItem = true
+    pinpointRow, pinpointCol = holdRow, holdCol
+
+    local cell = board.grid[pinpointRow][pinpointCol]
+    -- TODO: Check dog
+    local count = popcount4(cell)
+    if count == 2 then
+      if cell % 16 == 1 + 4 or cell % 16 == 2 + 8 then selectedItem = 1
+      else selectedItem = 2 end
+    elseif count == 3 then selectedItem = 3
+    elseif count == 4 then selectedItem = 4
+    end
+    selectedValue = cell % 16
+    board.grid[pinpointRow][pinpointCol] = Board.EMPTY
   end
 
   s.move = function (x, y)
     if btnsStorehouse.move(x, y) then return end
+    local r, c = cellPos(x, y)
+    if pinpointingItem then
+      pinpointRow, pinpointCol = r, c
+    elseif holdTime >= 0 then
+      if r ~= holdRow or c ~= holdCol then
+        convertHoldToPinpoint()
+      end
+    end
   end
 
   s.release = function (x, y)
     if btnsStorehouse.release(x, y) then return end
+    if pinpointingItem then
+      pinpointingItem = false
+      pinpointRow, pinpointCol = cellPos(x, y)
+      if feasible[pinpointRow][pinpointCol] then
+        -- Put item down
+        board.grid[pinpointRow][pinpointCol] = Board.PATH + selectedValue
+        selectedItem = -1
+      end
+    elseif holdTime >= 0 then
+      holdTime = -1
+      -- Tapped. Rotate the item
+      -- Rotate the dog if there is one, otherwise the path
+      local cell = board.grid[holdRow][holdCol]
+      local sides = cell % 16
+      local dog = bit.arshift(cell, 4) % 16
+      if dog >= 1 and dog <= 4 then
+        local newDog = dog % 4 + 1
+        cell = cell + (newDog - dog) * 16
+      else
+        local newSides = (sides * 2) % 16 + (bit.arshift(cell, 3) % 2)
+        cell = cell + (newSides - sides)
+      end
+      board.grid[holdRow][holdCol] = cell
+    end
   end
 
   s.update = function ()
     btnsStorehouse.update()
+    if holdTime >= 0 then
+      holdTime = holdTime + 1
+      -- Convert to a pinpoint if held for 0.5 second
+      if holdTime >= 120 then
+        convertHoldToPinpoint()
+      end
+    end
     if boardRunning then board.update() end
   end
-
-  local xStart = (W + STORE_WIDTH) / 2 - CELL_SIZE * board.w / 2
-  local yStart = H / 2 - CELL_SIZE * board.h / 2
 
   local function drawSheep(sh)
     if sh.eta == 0 then
@@ -139,6 +250,44 @@ return function ()
         end
       end
     end
+
+    -- Feasible regions
+    if selectedItem ~= -1 then
+      for r = 1, board.h do
+        for c = 1, board.w do
+          if feasible[r][c] then
+            love.graphics.setColor(0, 1, 0, 0.5)
+            love.graphics.rectangle('fill',
+              xStart + (c - 1) * CELL_SIZE,
+              yStart + (r - 1) * CELL_SIZE,
+              CELL_SIZE, CELL_SIZE)
+          end
+        end
+      end
+    end
+
+    -- Pinpoint indicators
+    if pinpointingItem then
+      if pinpointRow >= 1 and pinpointRow <= board.h and
+         pinpointCol >= 1 and pinpointCol <= board.w and
+         feasible[pinpointRow][pinpointCol]
+      then
+        love.graphics.setColor(0.8, 0.8, 0.4, 0.6)
+      else
+        love.graphics.setColor(0.9, 0.5, 0.4, 0.6)
+      end
+      love.graphics.rectangle('fill',
+        xStart + (pinpointCol - 1) * CELL_SIZE,
+        0,
+        CELL_SIZE, H
+      )
+      love.graphics.rectangle('fill',
+        STORE_WIDTH,
+        yStart + (pinpointRow - 1) * CELL_SIZE,
+        W - STORE_WIDTH, CELL_SIZE
+      )
+    end
+
     for _, sh in ipairs(board.sheep) do drawSheep(sh) end
     love.graphics.setColor(1, 1, 1)
   end
