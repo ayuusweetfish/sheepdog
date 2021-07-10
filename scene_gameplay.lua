@@ -23,6 +23,26 @@ return function ()
     )
   end
 
+  local boardRunning = false
+
+  -- Run button
+  btnsStorehouse.add(
+    BORDER_PAD, H - BORDER_PAD - 50, 50, 50,
+    'black-right-pointing-triangle_25b6.png',
+    function ()
+      boardRunning = not boardRunning
+    end
+  )
+  -- Reset button
+  btnsStorehouse.add(
+    BORDER_PAD + 50, H - BORDER_PAD - 50, 50, 50,
+    'leftwards-arrow-with-hook_21a9.png',
+    function ()
+      boardRunning = false
+      board.reset()
+    end
+  )
+
   s.press = function (x, y)
     if btnsStorehouse.press(x, y) then return end
   end
@@ -37,7 +57,7 @@ return function ()
 
   s.update = function ()
     btnsStorehouse.update()
-    board.update()
+    if boardRunning then board.update() end
   end
 
   local xStart = (W + STORE_WIDTH) / 2 - CELL_SIZE * board.w / 2

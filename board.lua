@@ -37,6 +37,16 @@ local function ctz4(x)
   else return -1 end
 end
 
+local function cloneGrid(grid)
+  local grid1 = {}
+  for i, row in ipairs(grid) do
+    local row1 = {}
+    for j, col in ipairs(row) do row1[j] = col end
+    grid1[i] = row1
+  end
+  return grid1
+end
+
 function Board.create(level)
   local w, h = 16, 10
   local grid = {}
@@ -73,6 +83,15 @@ function Board.create(level)
   grid[5][5] = Board.PATH + 1 + 2 + 4 + 3*16
   grid[6][5] = Board.PATH + 1 + 2 + 4 + 1*16
 
+  local gridInit = grid
+
+  -- {flock index, count}
+  local sheepFlocks = {
+    {1, 5},
+    {-1, 3},
+    {2, 4},
+  }
+
   local sheep = {}
   -- flock: flock index
   -- eta: time until arrival
@@ -81,12 +100,26 @@ function Board.create(level)
   -- dir: 0-3 = N/E/S/W
   -- prog: 0 = at <from>, Board.CELL_SUBDIV = at <to>
   -- sheepfold: whether already in the sheepfold
-  for i = 1, 5 do
-    sheep[#sheep + 1] = { flock = 1, eta = i * Board.CELL_SUBDIV }
+
+  local function reset()
+    -- Reset grid
+    grid = cloneGrid(gridInit)
+    -- Reset sheep
+    for k = 1, #sheep do sheep[k] = nil end
+    local eta = 1
+    for _, flock in ipairs(sheepFlocks) do
+      if flock[1] ~= -1 then
+        for i = 1, flock[2] do
+          sheep[#sheep + 1] = {
+            flock = flock[1],
+            eta = (eta + (i - 1)) * Board.CELL_SUBDIV
+          }
+        end
+      end
+      eta = eta + flock[2]
+    end
   end
-  for i = 1, 5 do
-    sheep[#sheep + 1] = { flock = 2, eta = (i + 8) * Board.CELL_SUBDIV }
-  end
+  reset()
 
   local function update()
     -- index: flock * w * h + r * w + c, value: true
@@ -177,9 +210,12 @@ function Board.create(level)
 
   return {
     w = w, h = h,
+    gridInit = gridInit,
+    sheepFlocks = sheepFlocks,
     grid = grid,
     sheep = sheep,
     update = update,
+    reset = reset,
   }
 end
 
