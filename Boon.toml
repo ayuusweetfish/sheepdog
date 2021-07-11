@@ -60,6 +60,9 @@ ignore_list = [
     # Boon-specific files and directories
     "Boon.toml",
     "release",
+
+    # Assets used in README
+    "assets",
 ]
 
 # If this is set to true, then the default ignore list will not be
