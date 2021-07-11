@@ -7,17 +7,20 @@ local tutorial = require 'tutorial'
 
 local sprites = require 'sprites'
 
-local BORDER_PAD = 12
-local ITEM_SIZE = 60
-local ITEM_SPACE = 12
+local BORDER_PAD = 24
+local ITEM_SIZE = 72
+local ITEM_SPACE = 24
 local STORE_WIDTH = ITEM_SIZE + BORDER_PAD * 2
-local CELL_SIZE = 40
 
 return function ()
   local s = {}
 
   local board = Board.create(4)
   local itemCount = {}
+
+  local cellSizeVert = H * (0.85 - math.exp(-0.2 * (board.h + 1))) / board.h
+  local cellSizeHorz = (W - STORE_WIDTH) * (0.9 - math.exp(-0.2 * (board.w + 1))) / board.w
+  local CELL_SIZE = math.min(cellSizeVert, cellSizeHorz)
 
   local tutAreas = {}
   local tut = tutorial(board.tutorial, tutAreas)
@@ -130,7 +133,7 @@ return function ()
       'res/black-right-pointing-triangle_25b6.png')
   end
   runButton = btnsStorehouse.add(
-    BORDER_PAD, H - BORDER_PAD - 50, 50, 50,
+    BORDER_PAD, H - BORDER_PAD - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE,
     'res/black-right-pointing-triangle_25b6.png',
     function ()
       boardRunning = not boardRunning
@@ -154,11 +157,12 @@ return function ()
       end
     end
   )
-  tutAreas['btn_run'] = {BORDER_PAD, H - BORDER_PAD - 50, 50, 50}
+  tutAreas['btn_run'] = {BORDER_PAD, H - BORDER_PAD - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE}
 
   -- Reset button
   btnsStorehouse.add(
-    BORDER_PAD + 50, H - BORDER_PAD - 50, 50, 50,
+    BORDER_PAD, H - BORDER_PAD - ITEM_SIZE * 2 - ITEM_SPACE,
+    ITEM_SIZE, ITEM_SIZE,
     'res/leftwards-arrow-with-hook_21a9.png',
     function ()
       boardRunning = false

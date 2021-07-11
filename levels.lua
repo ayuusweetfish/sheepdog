@@ -5,24 +5,25 @@ format for each level:
   "grid"
     space = empty
     o = obstacle
-    1234 = sheepfold with entrance facing left
-    ABCD = sheepfold with entrance facing right
+    1234 = sheepfold with entrance facing down
+    ABCD = sheepfold with entrance facing left
     box drawing characters = fixed paths
       ─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼
 ]]
 return {
   [1] = {
-    {1, 2, 0, 0, 0},
+    {2, 1, 0, 0, 0},
     {6},
-    "   1",
+    "  1 ",
+    "    ",
     "─   ",
     tutorial = {
       {-1, 'btn_storehouse 1'},
       {0.12, 0.08, 'take it', 'storehouse_click 1'},
-      {-1, 'cell 2 2'},
-      {0.5, 0.6, 'put it here', 'put 2 2'},
-      {-1, 'cell 2 2', nil, nil, {instant = true}},
-      {0.5, 0.6, 'click to rotate', 'rotate_path 2 2'},
+      {-1, 'cell 3 2'},
+      {0.5, 0.6, 'put it here', 'put 3 2'},
+      {-1, 'cell 3 2', nil, nil, {instant = true}},
+      {0.5, 0.6, 'click to rotate', 'rotate_path 3 2'},
       {0.55, 0.32, 'build a route to the sheepfold\nyou can do the rest!', 'empty'},
       {0.05, 0.8, 'when done, click play button', 'run'},
     }
@@ -30,25 +31,28 @@ return {
   [2] = {
     {1, 0, 0, 0, 0},
     {3},
-    "── ──── ──1",
+    "ooooooooooo",
+    "┌─ ──── ──A",
+    "┘oooooooooo",
     tutorial = {
+      {-1, 'btn_storehouse 1'},
       {0.12, 0.08, 'not enough??', 'storehouse_click 1'},
-      {-1, 'cell 1 3'},
-      {0.35, 0.4, 'try anyway', 'put 1 3'},
-      {-1, 'cell 1 3', nil, nil, {instant = true}},
-      {0.35, 0.4, 'try anyway', 'rotate_path 1 3', {instant = true}},
+      {-1, 'cell 2 3'},
+      {0.35, 0.4, 'try anyway', 'put 2 3'},
+      {-1, 'cell 2 3', nil, nil, {instant = true}},
+      {0.35, 0.4, 'try anyway', 'rotate_path 2 3', {instant = true}},
       {-1, 'btn_run'},
       {0.05, 0.8, 'let\'s play first', 'run'},
       {0, 0, '', 'delay 600'},
-      {-1, 'cell 1 3'},
-      {-1, 'cell 1 8'},
-      {0.56, 0.55, 'drag the previous one here!', 'put 1 8'},
+      {-1, 'cell 2 3'},
+      {-1, 'cell 2 8'},
+      {0.56, 0.55, 'drag the previous one here!', 'put 2 8'},
     }
   },
   [3] = {
     {0, 0, 2, 0, 2},
     {6},
-    "    ┌1",
+    "    1 ",
     "    │ ",
     "── ─  ",
     tutorial = {
@@ -77,10 +81,11 @@ return {
   },
   [4] = {
     {0, 0, 0, 0, 1},
-    {4, 4, 4},
-    "  ┌─1",
-    "  │  ",
-    "──┴─2",
+    {4, 3, 4},
+    "  1   ",
+    "  │   ",
+    "┌─┴──B",
+    "┘     ",
     tutorial = {
       {-1, 'prog_ind'},
       {0.2, 0.85, 'this time there are two flocks', 'delay 900'},
@@ -103,5 +108,12 @@ return {
     "  o    ",
     "  o   2",
     "─      ",
+  },
+  [6] = {
+    {0, 0, 0, 0, 0},
+    {10},
+    "                             ",
+    "                            1",
+    "                             ",
   },
 }

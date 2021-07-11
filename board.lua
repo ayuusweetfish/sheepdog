@@ -76,14 +76,14 @@ function Board.create(level)
         ['┬'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 2 + 4 + 8,
         ['┴'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 8 + 1 + 2,
         ['┼'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 1 + 2 + 4 + 8,
-        ['1'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 0) + 8,
-        ['2'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 1) + 8,
-        ['3'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 2) + 8,
-        ['4'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 3) + 8,
-        ['A'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 0) + 2,
-        ['B'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 1) + 2,
-        ['C'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 2) + 2,
-        ['D'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 3) + 2,
+        ['1'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 0) + 4,
+        ['2'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 1) + 4,
+        ['3'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 2) + 4,
+        ['4'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 3) + 4,
+        ['A'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 0) + 8,
+        ['B'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 1) + 8,
+        ['C'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 2) + 8,
+        ['D'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 3) + 8,
       }
       char = utf8.char(char)
       row[#row + 1] = map[char]

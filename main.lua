@@ -1,5 +1,5 @@
-W = 800
-H = 480
+W = 1080
+H = 720
 
 local sceneGameplay = require 'scene_gameplay'
 
