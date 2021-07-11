@@ -82,17 +82,33 @@ return function (script, areas)
   end
 
   t.draw = function ()
+    local progress = 1
+    if time < 120 then
+      local x = time / 120
+      progress = 1 - math.exp(-6 * x) * (1 - x)
+    end
     for i = current, math.min(currentUntil, #script) do
+      local progress = progress
+      -- Instant?
+      if script[i][5] ~= nil and script[i][5].instant then progress = 1 end
       if script[i][1] == -1 then
         local a = areas[script[i][2]]
         local PAD = 5
-        love.graphics.setColor(0.8, 0.7, 0.2)
+        local xCen = a[1] + a[3] / 2
+        local yCen = a[2] + a[4] / 2
+        local w = a[3] + PAD * 2
+        local h = a[4] + PAD * 2
+        w = w * (0.5 + progress * 0.5)
+        h = h * (0.5 + progress * 0.5)
+        local x = xCen - w / 2
+        local y = yCen - h / 2
+        love.graphics.setColor(0.8, 0.7, 0.2, progress)
         love.graphics.setLineWidth(3)
-        love.graphics.rectangle('line', a[1] - PAD, a[2] - PAD, a[3] + PAD * 2, a[4] + PAD * 2)
-        love.graphics.setColor(1, 0.95, 0.7, 0.5)
-        love.graphics.rectangle('fill', a[1] - PAD, a[2] - PAD, a[3] + PAD * 2, a[4] + PAD * 2)
+        love.graphics.rectangle('line', x, y, w, h)
+        love.graphics.setColor(1, 0.95, 0.7, 0.5 * progress)
+        love.graphics.rectangle('fill', x, y, w, h)
       else
-        love.graphics.setColor(0, 0, 0)
+        love.graphics.setColor(0, 0, 0, progress)
         love.graphics.print(script[i][3], W * script[i][1], H * script[i][2])
       end
     end
