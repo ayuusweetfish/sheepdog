@@ -17,7 +17,7 @@ local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 return function ()
   local s = {}
 
-  local board = Board.create(5)
+  local board = Board.create(4)
   local itemCount = {}
 
   local cellSizeVert = H * (0.9 - math.exp(-0.2 * (board.h + 1))) / board.h
@@ -613,7 +613,7 @@ return function ()
       end
     end
     -- Border
-    love.graphics.setColor(0.1, 0.3, 0.1, 0.8)
+    love.graphics.setColor(0.1, 0.3, 0.1, 0.6)
     love.graphics.setLineWidth(3)
     love.graphics.rectangle('line',
       xStart, yStart, CELL_SIZE * board.w, CELL_SIZE * board.h)
@@ -800,20 +800,23 @@ return function ()
     end
 
     -- Progress indicator
-    local xInd = STORE_WIDTH + 80
-    local yInd = H - 32
-    local scaleInd = (W - xInd - 20) / 30
+    local xInd = STORE_WIDTH + 48
+    local yInd = H - 48
+    local scaleInd = (W - xInd - 20) / 20
+    local hInd = 48
     local pfxSum = 0
     for _, flock in ipairs(board.sheepFlocks) do
       local newSum = pfxSum + flock[2]
       for i = pfxSum, newSum - 1 do
         if flock[1] ~= -1 then
-          love.graphics.setColor(flockColour(flock[1]))
-          love.graphics.circle('fill', xInd + (i + 0.5) * scaleInd, yInd, 12)
+          love.graphics.setColor(1, 1, 1)
+          sprites.draw('sheep_' .. flock[1] .. '_front',
+            xInd + (i + 0.5) * scaleInd - hInd / 2,
+            yInd - hInd / 2, 0, hInd, hInd)
         else
-          love.graphics.setColor(0.9, 0.9, 0.9)
+          love.graphics.setColor(0, 0, 0, 0.3)
           love.graphics.setLineWidth(1)
-          love.graphics.circle('line', xInd + (i + 0.5) * scaleInd, yInd, 12)
+          love.graphics.circle('line', xInd + (i + 0.5) * scaleInd, yInd, hInd * 0.9 / 2)
         end
       end
       pfxSum = newSum
@@ -821,9 +824,9 @@ return function ()
     love.graphics.setColor(0.6, 0.6, 0.6, 0.8)
     love.graphics.setLineWidth(10)
     local xProg = xInd + math.min(boardRunProgress / Board.CELL_SUBDIV, pfxSum) * scaleInd
-    love.graphics.line(xProg, yInd - 12, xProg, yInd + 12)
+    love.graphics.line(xProg, yInd - hInd / 2, xProg, yInd + hInd / 2)
 
-    tutAreas['prog_ind'] = {xInd, yInd - 12, pfxSum * scaleInd, 24}
+    tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, pfxSum * scaleInd, hInd}
 
     -- Tutorial, if any
     tut.draw()
