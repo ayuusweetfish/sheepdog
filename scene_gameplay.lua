@@ -12,12 +12,13 @@ local BORDER_PAD_Y = 24
 local ITEM_SIZE = 64
 local ITEM_SPACE = 36
 local BUTTON_SPACE = 24
+local ITEM_SURROUND_SPACE = 10
 local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 
 return function ()
   local s = {}
 
-  local board = Board.create(94)
+  local board = Board.create(4)
   local itemCount = {}
 
   local cellSizeVert = H * (0.9 - math.exp(-0.2 * (board.h + 1))) / board.h
@@ -134,6 +135,9 @@ return function ()
       ITEM_SIZE, ITEM_SIZE
     }
   end
+
+  -- Text objects for count display
+  local textCount = {}
 
   local function resetItemCount()
     for i = 1, 5 do
@@ -817,27 +821,47 @@ return function ()
       else
         love.graphics.setColor(0.9, 0.9, 0.9)
       end
-      local space = ITEM_SPACE * 0.3
       love.graphics.rectangle('fill',
-        BORDER_PAD_X - space,
-        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - space,
-        ITEM_SIZE + space * 2, ITEM_SIZE + space * 2)
-      love.graphics.setColor(0.45, 0.25, 0.1)
-      love.graphics.setLineWidth(3)
-      love.graphics.rectangle('line',
-        BORDER_PAD_X - space,
-        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - space,
-        ITEM_SIZE + space * 2, ITEM_SIZE + space * 2)
+        BORDER_PAD_X - ITEM_SURROUND_SPACE,
+        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - ITEM_SURROUND_SPACE,
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2)
     end
+
+    -- Buttons themselves
     btnsStorehouse.draw()
 
     -- Text
-    love.graphics.setColor(0.95, 0.95, 0.95)
     for i = 1, 5 do
-      love.graphics.print(tostring(itemCount[i]),
-        BORDER_PAD_X + ITEM_SIZE + 24,
-        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
+      local text = textCount[itemCount[i]]
+      if text == nil then
+        text = love.graphics.newText(_G['font_Mali'], tostring(itemCount[i]))
+        textCount[itemCount[i]] = text
+      end
+      local textSize = 24
+      local xText = BORDER_PAD_X
+        + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
+      local yText = BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
+        + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
+      love.graphics.setColor(0.2, 0.2, 0.2, 0.75)
+      love.graphics.rectangle('fill', xText, yText, textSize, textSize)
+      local textScale = 0.75
+      love.graphics.setColor(0.95, 0.95, 0.95)
+      love.graphics.draw(text,
+        xText + (textSize - text:getWidth() * textScale) / 2, yText - 2,
+        0, textScale, textScale
       )
+    end
+
+    -- Frames around buttons
+    for i = 1, 5 do
+      love.graphics.setColor(0.5, 0.3, 0.1)
+      love.graphics.setLineWidth(3)
+      love.graphics.rectangle('line',
+        BORDER_PAD_X - ITEM_SURROUND_SPACE,
+        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - ITEM_SURROUND_SPACE,
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2)
     end
 
     -- Progress indicator

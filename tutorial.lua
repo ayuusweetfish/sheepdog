@@ -16,8 +16,7 @@
 return function (script, areas)
   local t = {}
 
-  -- local font = love.graphics.getFont()
-  local font = _G['font_Mali']
+  local font = love.graphics.getFont()
 
   script = script or {}
   local current = 1
