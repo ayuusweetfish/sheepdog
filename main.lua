@@ -3,8 +3,11 @@ H = 720
 
 local sceneGameplay = require 'scene_gameplay'
 
+_G['font_Mali'] = love.graphics.newFont('res/Mali-Regular.ttf', 24)
+
 function love.load()
   love.window.setMode(W, H, { highdpi = true })
+  love.graphics.setFont(_G['font_Mali'])
 end
 
 local curScene = sceneGameplay()
