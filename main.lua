@@ -14,10 +14,15 @@ end
 
 -- local curScene = sceneGameplay()
 local curScene = sceneStartup()
+local lastScene = nil
+local transitionTimer = 0
 
-_G['pushScene'] = function (newScene)
-  -- TODO: Transition
+local TRANSITION_HALF_DUR = 80
+
+_G['replaceScene'] = function (newScene)
+  lastScene = curScene
   curScene = newScene
+  transitionTimer = 0
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
@@ -40,6 +45,10 @@ function love.update(dt)
   while T > 0 do
     T = T - timeStep
     curScene:update()
+    if lastScene ~= nil then
+      lastScene:update()
+      transitionTimer = transitionTimer + 1
+    end
   end
 end
 
@@ -47,5 +56,20 @@ function love.draw()
   love.graphics.setColor(0.975, 0.975, 0.975)
   love.graphics.rectangle('fill', 0, 0, W, H)
   love.graphics.setColor(1, 1, 1)
-  curScene.draw()
+  if lastScene ~= nil then
+    local opacity = 0
+    local x = transitionTimer / TRANSITION_HALF_DUR
+    if x < 1 then
+      lastScene:draw()
+      opacity = x
+    else
+      curScene:draw()
+      opacity = 2 - x
+      if x >= 2 then lastScene = nil end
+    end
+    love.graphics.setColor(0.1, 0.1, 0.1, opacity)
+    love.graphics.rectangle('fill', 0, 0, W, H)
+  else
+    curScene.draw()
+  end
 end

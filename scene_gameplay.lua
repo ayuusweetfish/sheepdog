@@ -538,7 +538,7 @@ sceneGameplay = function (levelIndex)
     else
       gameFinishTimer = gameFinishTimer + 1
       if gameFinishTimer == 480 then
-        _G['pushScene'](sceneGameplay(levelIndex + 1))
+        _G['replaceScene'](sceneGameplay(levelIndex + 1))
       end
     end
   end

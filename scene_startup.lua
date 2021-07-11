@@ -11,8 +11,8 @@ return function ()
   end
 
   s.release = function (x, y)
-    sprites.delete('game_start')
-    _G['pushScene'](sceneGameplay(1))
+    -- sprites.delete('game_start')
+    _G['replaceScene'](sceneGameplay(1))
   end
 
   s.update = function ()
