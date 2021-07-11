@@ -15,7 +15,8 @@ local BUTTON_SPACE = 24
 local ITEM_SURROUND_SPACE = 10
 local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 
-return function (levelIndex)
+local sceneGameplay
+sceneGameplay = function (levelIndex)
   local s = {}
   levelIndex = levelIndex or 4
 
@@ -451,6 +452,9 @@ return function (levelIndex)
     end
   end
 
+  -- Time after the finishing criterion has been met
+  local gameFinishTimer = -1
+
   s.update = function ()
     btnsStorehouse.update()
     if holdTime >= 0 then
@@ -518,6 +522,25 @@ return function (levelIndex)
     end
     -- Update tutorial
     tut.update()
+    -- Check whether all sheep are in correct sheepfolds
+    if gameFinishTimer == -1 then
+      local sheepNotArrived = false
+      for _, sh in ipairs(board.sheep) do
+        if not sh.sheepfold then
+          sheepNotArrived = true
+          break
+        end
+      end
+      if not sheepNotArrived then
+        -- Game finish
+        gameFinishTimer = 0
+      end
+    else
+      gameFinishTimer = gameFinishTimer + 1
+      if gameFinishTimer == 480 then
+        _G['pushScene'](sceneGameplay(levelIndex + 1))
+      end
+    end
   end
 
   local function flockColour(n)
@@ -911,3 +934,5 @@ return function (levelIndex)
 
   return s
 end
+
+return sceneGameplay
