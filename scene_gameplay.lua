@@ -77,6 +77,16 @@ return function ()
     return 1 - easeProgRem(t)
   end
 
+  -- Number of rotations on each cell
+  -- For I-shaped paths, this increments by 2 every half-cycle
+  -- For +-shaped paths, this increments by 1 every quarter-cycle
+  -- Irrelevant for other shapes
+  local rotationCount = {}
+  for r = 1, board.h do
+    rotationCount[r] = {}
+    for c = 1, board.w do rotationCount[r][c] = 0 end
+  end
+
   local btnsStorehouse = buttons()
   local itemSprites = {
     'path1', 'path2', 'path3', 'path4', 'ice-cream_1f368'
@@ -128,6 +138,7 @@ return function ()
   local runButton
   local savedGrid = {}
   local savedItemCount = {}
+  local savedRotationCount = {}
   local function updateRunButtonSprite()
     btnsStorehouse.sprite(runButton,
       boardRunning and 'res/black-left-pointing-double-triangle_23ea.png' or
@@ -144,12 +155,14 @@ return function ()
       if boardRunning then
         -- Save board state
         cloneGrid(savedGrid, board.grid)
+        cloneGrid(savedRotationCount, rotationCount)
         for i = 1, 5 do savedItemCount[i] = itemCount[i] end
         tut.emit('run')
       else
         board.reset()
         -- Restore board state
         cloneGrid(board.grid, savedGrid)
+        cloneGrid(rotationCount, savedRotationCount)
         for i = 1, 5 do
           itemCount[i] = savedItemCount[i]
           btnsStorehouse.enable(i, itemCount[i] > 0)
@@ -331,6 +344,7 @@ return function ()
         -- Put item down
         if selectedItem >= 1 and selectedItem <= 4 then
           board.grid[pinpointRow][pinpointCol] = Board.PATH + selectedValue
+          rotationCount[pinpointRow][pinpointCol] = 0
         elseif selectedItem == 5 then
           local cell = board.grid[pinpointRow][pinpointCol]
           board.grid[pinpointRow][pinpointCol] =
@@ -369,6 +383,11 @@ return function ()
         cell = cell + (newSides - sides)
         cellAnim[#cellAnim + 1] = {holdRow, holdCol, ANIM_TYPE_ROTATE_PATH, ANIM_DUR}
         tut.emit('rotate_path ' .. holdRow .. ' ' .. holdCol)
+        if newSides == 10 then
+          rotationCount[holdRow][holdCol] = (rotationCount[holdRow][holdCol] + 2) % 4
+        elseif newSides == 15 then
+          rotationCount[holdRow][holdCol] = (rotationCount[holdRow][holdCol] + 1) % 4
+        end
       end
       board.grid[holdRow][holdCol] = cell
     end
@@ -459,6 +478,7 @@ return function ()
                 rotation = rotation - easeProgRem(anim[4]) * math.pi / 2
               end
             end
+            rotation = rotation + rotationCount[r][c] * math.pi / 2
             love.graphics.setColor(1, 1, 1)
             sprites.draw('path' .. ty, xCell, yCell, rotation, CELL_SIZE, CELL_SIZE)
             -- Entry?
