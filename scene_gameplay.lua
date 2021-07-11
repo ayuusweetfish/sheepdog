@@ -15,11 +15,11 @@ local STORE_WIDTH = ITEM_SIZE + BORDER_PAD * 2
 return function ()
   local s = {}
 
-  local board = Board.create(7)
+  local board = Board.create(8)
   local itemCount = {}
 
-  local cellSizeVert = H * (0.85 - math.exp(-0.2 * (board.h + 1))) / board.h
-  local cellSizeHorz = (W - STORE_WIDTH) * (0.9 - math.exp(-0.2 * (board.w + 1))) / board.w
+  local cellSizeVert = H * (0.9 - math.exp(-0.2 * (board.h + 1))) / board.h
+  local cellSizeHorz = (W - STORE_WIDTH) * (0.95 - math.exp(-0.2 * (board.w + 1))) / board.w
   local CELL_SIZE = math.min(cellSizeVert, cellSizeHorz)
 
   local tutAreas = {}
@@ -143,20 +143,32 @@ return function ()
 
   local boardRunning = false
   local boardRunProgress = 0
+  local boardDoubleSpeed = false
 
   -- Run button
   local runButton, resetButton
   local savedGrid = {}
   local savedItemCount = {}
   local savedRotationCount = {}
+  local function updateButtonIcons()
+    if boardRunning then
+      btnsStorehouse.sprite(runButton, 'res/black-left-pointing-double-triangle_23ea.png')
+      if boardDoubleSpeed then
+        btnsStorehouse.sprite(resetButton, 'res/ice-cream_1f368.png')
+      else
+        btnsStorehouse.sprite(resetButton, 'res/black-right-pointing-triangle_25b6.png')
+      end
+    else
+      btnsStorehouse.sprite(runButton, 'res/black-right-pointing-triangle_25b6.png')
+      btnsStorehouse.sprite(resetButton, 'res/leftwards-arrow-with-hook_21a9.png')
+    end
+  end
   local function runButtonHandler()
     boardRunning = not boardRunning
     selectedItem = -1
     boardRunProgress = 0
-    btnsStorehouse.sprite(runButton,
-      boardRunning and 'res/black-left-pointing-double-triangle_23ea.png' or
-      'res/black-right-pointing-triangle_25b6.png')
     if boardRunning then
+      boardDoubleSpeed = false
       -- Save board state
       cloneGrid(savedGrid, board.grid)
       cloneGrid(savedRotationCount, rotationCount)
@@ -175,7 +187,7 @@ return function ()
       for k in pairs(sheepAnim) do sheepAnim[k] = nil end
       tut.emit('stop')
     end
-    btnsStorehouse.enable(resetButton, not boardRunning)
+    updateButtonIcons()
   end
   runButton = btnsStorehouse.add(
     BORDER_PAD, H - BORDER_PAD - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE,
@@ -190,13 +202,20 @@ return function ()
     ITEM_SIZE, ITEM_SIZE,
     'res/leftwards-arrow-with-hook_21a9.png',
     function ()
-      boardRunning = true
-      runButtonHandler()  -- Trigger a board state reset
-      board.reset()
-      resetItemCount()
-      for r = 1, board.h do
-        for c = 1, board.w do rotationCount[r][c] = 0 end
+      if boardRunning then
+        -- Double speed
+        boardDoubleSpeed = not boardDoubleSpeed
+      else
+        -- Reset
+        boardRunning = true
+        runButtonHandler()  -- Trigger a board state reset
+        board.reset()
+        resetItemCount()
+        for r = 1, board.h do
+          for c = 1, board.w do rotationCount[r][c] = 0 end
+        end
       end
+      updateButtonIcons()
     end
   )
 
@@ -432,6 +451,10 @@ return function ()
     if boardRunning and not tut.blocksBoardUpdates() then
       board.update()
       boardRunProgress = boardRunProgress + 1
+      if boardDoubleSpeed then
+        board.update()
+        boardRunProgress = boardRunProgress + 1
+      end
     end
     -- Update sheep animations
     for _, sh in ipairs(board.sheep) do
@@ -479,7 +502,7 @@ return function ()
     end
   end
 
-  local function drawSheep(sh)
+  local function drawSheep(index, sh)
     if sh.eta == 0 then
       local prog = sh.prog / Board.CELL_SUBDIV
       local r = sh.from[1] * (1 - prog) + sh.to[1] * prog
@@ -529,9 +552,15 @@ return function ()
           love.graphics.print(icon, xCen, yIcon)
         end
       end
-      -- Draw
-      love.graphics.setColor(flockColour(sh.flock))
-      love.graphics.circle('fill', xCen, yCen, 10)
+      -- Draw the sheep
+      love.graphics.setColor(1, 1, 1)
+      local rate = math.sin((boardRunProgress + index * 123) / 50)
+      local w = 1 + rate * 0.01
+      local h = 1 - rate * 0.02
+      w = CELL_SIZE * 0.95 * w
+      h = CELL_SIZE * 0.9 * h
+      sprites.draw('sheep_1_front',
+        xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, 0, w, h)
     else
       -- Maybe draw sheep walking in?
     end
@@ -679,7 +708,7 @@ return function ()
         CELL_SIZE, CELL_SIZE)
     end
 
-    for _, sh in ipairs(board.sheep) do drawSheep(sh) end
+    for i, sh in ipairs(board.sheep) do drawSheep(i, sh) end
 
     -- Storehouse buttons
     -- First, indicator

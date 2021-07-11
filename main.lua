@@ -4,7 +4,7 @@ H = 720
 local sceneGameplay = require 'scene_gameplay'
 
 function love.load()
-  love.window.setMode(W, H)
+  love.window.setMode(W, H, { highdpi = true })
 end
 
 local curScene = sceneGameplay()

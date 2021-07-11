@@ -22,7 +22,7 @@ local Board = {
   TYPE_MAX = 32,
   ENTRY = 8192, -- PATH * TYPE_MAX
 
-  CELL_SUBDIV = 60,
+  CELL_SUBDIV = 120,
 }
 
 local MOVE = {
