@@ -15,10 +15,11 @@ local BUTTON_SPACE = 24
 local ITEM_SURROUND_SPACE = 10
 local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 
-return function ()
+return function (levelIndex)
   local s = {}
+  levelIndex = levelIndex or 4
 
-  local board = Board.create(4)
+  local board = Board.create(levelIndex)
   local itemCount = {}
 
   local cellSizeVert = H * 0.75 * (1 - math.exp(-0.4 * (board.h - 0.6))) / board.h

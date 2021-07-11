@@ -1,6 +1,7 @@
 W = 1080
 H = 720
 
+local sceneStartup = require 'scene_startup'
 local sceneGameplay = require 'scene_gameplay'
 
 _G['font_Mali'] = love.graphics.newFont('res/Mali-Regular.ttf', 24)
@@ -11,7 +12,13 @@ function love.load()
   love.window.setMode(W, H, { highdpi = true })
 end
 
-local curScene = sceneGameplay()
+-- local curScene = sceneGameplay()
+local curScene = sceneStartup()
+
+_G['pushScene'] = function (newScene)
+  -- TODO: Transition
+  curScene = newScene
+end
 
 function love.mousepressed(x, y, button, istouch, presses)
   if button ~= 1 then return end
