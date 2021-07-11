@@ -18,7 +18,8 @@ local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  levelIndex = levelIndex or 4
+  -- levelIndex = levelIndex or 4
+  levelIndex = 5
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -745,9 +746,9 @@ sceneGameplay = function (levelIndex)
       for c = 1, board.w do
         if cellDog(board.grid[r][c]) ~= 0 then
           sprites.draw('dog',
-            xStart + (c - 1) * CELL_SIZE + CELL_SIZE * 0.6,
-            yStart + (r - 1) * CELL_SIZE - CELL_SIZE * 0.3,
-            0, CELL_SIZE * 0.7, CELL_SIZE * 0.7)
+            xStart + (c - 1) * CELL_SIZE + CELL_SIZE * 0.5,
+            yStart + (r - 1) * CELL_SIZE - CELL_SIZE * 0.6,
+            0, CELL_SIZE * 1.1, CELL_SIZE * 1.1)
         end
       end
     end
