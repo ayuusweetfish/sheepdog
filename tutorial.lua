@@ -15,6 +15,14 @@ return function (script)
       i = i + 1
     end
     currentUntil = i
+    if currentUntil <= #script and
+        script[currentUntil][4] ~= nil and
+        script[currentUntil][4]:sub(1, 6) == 'delay '
+    then
+      timeWaitTarget = tonumber(script[currentUntil][4]:sub(7))
+    else
+      timeWaitTarget = 0
+    end
   end
   calcUntil()
 
@@ -31,14 +39,12 @@ return function (script)
   end
 
   t.blocksInteractions = function ()
-    return (currentUntil <= #script and
-      script[currentUntil][4] ~= nil and
-      script[currentUntil][4]:sub(1, 6) == 'delay ')
+    return timeWaitTarget > 0
   end
 
   t.update = function ()
     time = time + 1
-    if time % 120 == 0 then
+    if time == timeWaitTarget then
       t.emit('delay ' .. time)
     end
   end

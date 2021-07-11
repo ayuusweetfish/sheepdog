@@ -127,8 +127,8 @@ return function ()
       btnsStorehouse.sprite(runButton,
         boardRunning and 'res/black-left-pointing-double-triangle_23ea.png' or
         'res/black-right-pointing-triangle_25b6.png')
+      boardRunProgress = 0
       if boardRunning then
-        boardRunProgress = 0
         -- Save board state
         cloneGrid(savedGrid, board.grid)
         for i = 1, 5 do savedItemCount[i] = itemCount[i] end
@@ -556,22 +556,20 @@ return function ()
     end
 
     -- Progress indicator
-    local xInd = STORE_WIDTH + 48
-    local yInd = H - 20
-    local scaleInd = (W - STORE_WIDTH - 60) / 30
+    local xInd = STORE_WIDTH + 80
+    local yInd = H - 32
+    local scaleInd = (W - STORE_WIDTH - 100) / 30
     local pfxSum = 0
     for _, flock in ipairs(board.sheepFlocks) do
       local newSum = pfxSum + flock[2]
-      love.graphics.setLineWidth(4)
       love.graphics.setColor(flockColour(flock[1]))
-      love.graphics.line(
-        xInd + pfxSum * scaleInd, yInd, xInd + newSum * scaleInd, yInd
-      )
-      love.graphics.setColor(0, 0, 0)
-      love.graphics.print(pfxSum, xInd + pfxSum * scaleInd, yInd - 18)
+      for i = pfxSum, newSum - 1 do
+        love.graphics.circle('fill',
+          xInd + (i + 1) * scaleInd, yInd, 12
+        )
+      end
       pfxSum = newSum
     end
-    love.graphics.print(pfxSum, xInd + pfxSum * scaleInd, yInd - 18)
     love.graphics.setColor(0.6, 0.6, 0.6, 0.8)
     local xProg = xInd + math.min(boardRunProgress / Board.CELL_SUBDIV, pfxSum) * scaleInd
     love.graphics.line(xProg, yInd - 12, xProg, yInd + 12)
