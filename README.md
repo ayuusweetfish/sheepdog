@@ -5,5 +5,5 @@
 2021 CiGA Game Jam ・ 队伍**栗子粥**
 
 :construction:  
-目前状态：可玩，但缺失关卡跳转  
+目前关卡数量不足  
 ETA：07.12  
