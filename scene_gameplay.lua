@@ -7,10 +7,12 @@ local tutorial = require 'tutorial'
 
 local sprites = require 'sprites'
 
-local BORDER_PAD = 24
-local ITEM_SIZE = 72
-local ITEM_SPACE = 24
-local STORE_WIDTH = ITEM_SIZE + BORDER_PAD * 2
+local BORDER_PAD_X = 48
+local BORDER_PAD_Y = 24
+local ITEM_SIZE = 64
+local ITEM_SPACE = 36
+local BUTTON_SPACE = 24
+local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 
 return function ()
   local s = {}
@@ -99,14 +101,14 @@ return function ()
 
   local btnsStorehouse = buttons()
   local itemSprites = {
-    'path1', 'path2', 'path3', 'path4', 'ice-cream_1f368'
+    'path_1', 'path_2', 'path_3', 'path_4', 'dog'
   }
   for i = 1, 5 do
     local sprite = love.graphics.newImage('res/' .. itemSprites[i] .. '.png')
     sprite:setFilter('nearest', 'nearest')
     btnsStorehouse.add(
-      BORDER_PAD,
-      BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
+      BORDER_PAD_X,
+      BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
       ITEM_SIZE, ITEM_SIZE,
       sprite,
       function ()
@@ -127,8 +129,8 @@ return function ()
       end
     )
     tutAreas['btn_storehouse ' .. i] = {
-      BORDER_PAD,
-      BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
+      BORDER_PAD_X,
+      BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
       ITEM_SIZE, ITEM_SIZE
     }
   end
@@ -190,15 +192,15 @@ return function ()
     updateButtonIcons()
   end
   runButton = btnsStorehouse.add(
-    BORDER_PAD, H - BORDER_PAD - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE,
+    BORDER_PAD_X, H - BORDER_PAD_Y - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE,
     'res/black-right-pointing-triangle_25b6.png',
     runButtonHandler
   )
-  tutAreas['btn_run'] = {BORDER_PAD, H - BORDER_PAD - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE}
+  tutAreas['btn_run'] = {BORDER_PAD_X, H - BORDER_PAD_Y - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE}
 
   -- Reset button
   resetButton = btnsStorehouse.add(
-    BORDER_PAD, H - BORDER_PAD - ITEM_SIZE * 2 - ITEM_SPACE,
+    BORDER_PAD_X, H - BORDER_PAD_Y - ITEM_SIZE * 2 - BUTTON_SPACE,
     ITEM_SIZE, ITEM_SIZE,
     'res/leftwards-arrow-with-hook_21a9.png',
     function ()
@@ -520,6 +522,8 @@ return function ()
     end
   end
 
+  local DIR_STRING = {[0] = 'back', [1] = 'right', [2] = 'front', [3] = 'left'}
+
   local function drawSheep(index, sh)
     if sh.eta == 0 then
       local prog = sh.prog / Board.CELL_SUBDIV
@@ -577,7 +581,7 @@ return function ()
       local h = 1 - rate * 0.02
       w = CELL_SIZE * 0.95 * w
       h = CELL_SIZE * 0.9 * h
-      sprites.draw('sheep_1_front',
+      sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[sh.dir],
         xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, 0, w, h)
     else
       -- Maybe draw sheep walking in?
@@ -585,25 +589,53 @@ return function ()
   end
 
   s.draw = function ()
+    -- Background
+    local backgroundScale = 0.4
+    local xBackground
+    xBackground = W - 450 * backgroundScale
+    sprites.draw('background_upperright',
+      xBackground, 0,
+      0, 450 * backgroundScale, 250 * backgroundScale)
+    while xBackground > 0 do
+      xBackground = xBackground - 540 * backgroundScale
+      sprites.draw('background_upperleft',
+        xBackground, 0,
+        0, 540 * backgroundScale, 250 * backgroundScale)
+    end
+    local backgroundLowerWidth = 1000 * backgroundScale
+    local backgroundLowerHeight = 750 * backgroundScale
+    for x = 1, math.ceil(W / backgroundLowerWidth) do
+      for y = 1, math.ceil(H / backgroundLowerHeight) do
+        sprites.draw('background_lower',
+          (x - 1) * backgroundLowerWidth,
+          (y - 1) * backgroundLowerHeight + 250 * backgroundScale,
+          0, backgroundLowerWidth, backgroundLowerHeight)
+      end
+    end
+    -- Border
+    love.graphics.setColor(0.1, 0.3, 0.1, 0.8)
+    love.graphics.setLineWidth(3)
+    love.graphics.rectangle('line',
+      xStart, yStart, CELL_SIZE * board.w, CELL_SIZE * board.h)
+    love.graphics.setColor(1, 1, 1)
     -- Grid
     for r = 1, board.h do
       for c = 1, board.w do
-        if board.grid[r][c] == Board.OBSTACLE then
-          love.graphics.setColor(0.8, 0.4, 0.4)
-        elseif (r + c) % 2 == 0 then
-          love.graphics.setColor(0.65, 0.85, 0.55)
-        else
-          love.graphics.setColor(0.55, 0.75, 0.48)
-        end
         local xCell = xStart + (c - 1) * CELL_SIZE
         local yCell = yStart + (r - 1) * CELL_SIZE
-        love.graphics.rectangle('fill', xCell, yCell, CELL_SIZE, CELL_SIZE)
+        if board.grid[r][c] == Board.OBSTACLE then
+          sprites.draw('bush_1',
+            xCell - CELL_SIZE * 0.1,
+            yCell - CELL_SIZE * 0.2,
+            0, CELL_SIZE * 1.2, CELL_SIZE * 1.2)
+        end
         if board.grid[r][c] >= Board.PATH then
           local pts = {{0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}}
           -- Draw path
           local ty = pathCellType(board.grid[r][c])
           if ty == 0 then
             -- Sheepfolds with one inlet
+            --[[
             love.graphics.setColor(1, 0.8, 0.6)
             love.graphics.setLineWidth(CELL_SIZE / 4)
             local dir = ctz4(board.grid[r][c] % 16)
@@ -611,6 +643,7 @@ return function ()
               xCell + CELL_SIZE * 0.5, yCell + CELL_SIZE * 0.5,
               xCell + CELL_SIZE * pts[dir + 1][1],
               yCell + CELL_SIZE * pts[dir + 1][2])
+            ]]
           else
             local rotation = pathCellRotation(board.grid[r][c])
             for _, anim in ipairs(cellAnim) do
@@ -620,13 +653,12 @@ return function ()
             end
             rotation = rotation + rotationCount[r][c] * math.pi / 2
             love.graphics.setColor(1, 1, 1)
-            sprites.draw('path' .. ty, xCell, yCell, rotation, CELL_SIZE, CELL_SIZE)
+            sprites.draw('path_' .. ty, xCell, yCell, rotation, CELL_SIZE, CELL_SIZE)
             -- Entry?
             if bit.band(board.grid[r][c], Board.ENTRY) ~= 0 then
-              love.graphics.setColor(1, 1, 1, 0.5)
-              sprites.draw('black-right-pointing-triangle_25b6',
-                xCell + CELL_SIZE * 0.3, yCell + CELL_SIZE * 0.1,
-                0, CELL_SIZE * 0.4, CELL_SIZE * 0.4)
+              sprites.draw('start_mark',
+                xCell + CELL_SIZE * 0.2, yCell - CELL_SIZE * 0.6,
+                0, CELL_SIZE * 0.75, CELL_SIZE * 0.9)
             end
           end
           -- Draw dog
@@ -646,16 +678,19 @@ return function ()
               CELL_SIZE * 0.2, CELL_SIZE * 0.5,
               0.5, 1
             )
-            sprites.draw('ice-cream_1f368',
+            sprites.draw('dog',
               xCell + CELL_SIZE * 0.6, yCell - CELL_SIZE * 0.1,
-              0, CELL_SIZE * 0.35, CELL_SIZE * 0.45)
+              0, CELL_SIZE * 0.6, CELL_SIZE * 0.6)
           end
           local ty = math.floor(board.grid[r][c] / Board.PATH)
           if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
-            local r, g, b = flockColour(ty - Board.TYPE_SHEEPFOLD + 1)
-            love.graphics.setColor(r, g, b, 0.7)
-            love.graphics.circle('fill',
-              xCell + CELL_SIZE / 2, yCell + CELL_SIZE / 2, CELL_SIZE / 3)
+            -- Draw sheepfold
+            local index = (ty - Board.TYPE_SHEEPFOLD + 1)
+            sprites.draw('fence_' .. index,
+              xCell - CELL_SIZE, yCell,
+              (bit.band(board.grid[r][c], 4) ~= 0 and 0 or math.pi / 2),
+              CELL_SIZE * 3, CELL_SIZE
+            )
           end
         end
       end
@@ -730,13 +765,28 @@ return function ()
     for i, sh in ipairs(board.sheep) do drawSheep(i, sh) end
 
     -- Storehouse buttons
-    -- First, indicator
-    if selectedItem ~= -1 and not selectedDrag then
-      love.graphics.setColor(0.6, 1, 0.7)
+    -- First, background
+    love.graphics.setColor(0.45, 0.25, 0.1, 0.75)
+    -- love.graphics.setColor(0.9, 0.9, 0.9, 0.8)
+    love.graphics.rectangle('fill', 0, 0, STORE_WIDTH, H)
+    -- Then, indicator
+    for i = 1, 5 do
+      if selectedItem == i and not selectedDrag then
+        love.graphics.setColor(0.6, 1, 0.7)
+      else
+        love.graphics.setColor(0.9, 0.9, 0.9)
+      end
+      local space = ITEM_SPACE * 0.3
       love.graphics.rectangle('fill',
-        BORDER_PAD,
-        BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (selectedItem - 1),
-        ITEM_SIZE, ITEM_SIZE)
+        BORDER_PAD_X - space,
+        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - space,
+        ITEM_SIZE + space * 2, ITEM_SIZE + space * 2)
+      love.graphics.setColor(0.45, 0.25, 0.1)
+      love.graphics.setLineWidth(3)
+      love.graphics.rectangle('line',
+        BORDER_PAD_X - space,
+        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - space,
+        ITEM_SIZE + space * 2, ITEM_SIZE + space * 2)
     end
     btnsStorehouse.draw()
 
@@ -744,8 +794,8 @@ return function ()
     love.graphics.setColor(0, 0, 0)
     for i = 1, 5 do
       love.graphics.print(tostring(itemCount[i]),
-        BORDER_PAD + ITEM_SIZE,
-        BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
+        BORDER_PAD_X + ITEM_SIZE,
+        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
       )
     end
 
