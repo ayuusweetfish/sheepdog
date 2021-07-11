@@ -698,16 +698,6 @@ return function ()
               0.5, 1
             )
           end
-          local ty = math.floor(board.grid[r][c] / Board.PATH)
-          if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
-            -- Draw sheepfold
-            local index = (ty - Board.TYPE_SHEEPFOLD + 1)
-            sprites.draw('fence_' .. index,
-              xCell - CELL_SIZE, yCell,
-              (bit.band(board.grid[r][c], 4) ~= 0 and 0 or math.pi / 2),
-              CELL_SIZE * 3, CELL_SIZE
-            )
-          end
         end
       end
     end
@@ -789,7 +779,31 @@ return function ()
         CELL_SIZE, CELL_SIZE)
     end
 
-    for i, sh in ipairs(board.sheep) do drawSheep(i, sh) end
+    -- Sheep in the sheepfolds
+    for i, sh in ipairs(board.sheep) do
+      if sh.sheepfold then drawSheep(i, sh) end
+    end
+    -- Sheepfolds
+    love.graphics.setColor(1, 1, 1)
+    for r = 1, board.h do
+      for c = 1, board.w do
+        local ty = math.floor(board.grid[r][c] / Board.PATH)
+        if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
+          -- Draw sheepfold
+          local index = (ty - Board.TYPE_SHEEPFOLD + 1)
+          sprites.draw('fence_' .. index,
+            xStart + (c - 2) * CELL_SIZE,
+            yStart + (r - 1) * CELL_SIZE,
+            (bit.band(board.grid[r][c], 4) ~= 0 and 0 or math.pi / 2),
+            CELL_SIZE * 3, CELL_SIZE
+          )
+        end
+      end
+    end
+    -- Sheep not in the sheepfolds
+    for i, sh in ipairs(board.sheep) do
+      if not sh.sheepfold then drawSheep(i, sh) end
+    end
 
     -- Storehouse buttons
     -- First, background
