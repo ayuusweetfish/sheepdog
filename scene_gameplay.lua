@@ -87,9 +87,9 @@ return function ()
     for c = 1, board.w do rotationCount[r][c] = 0 end
   end
 
-  -- Sheep animations, {type, args...}
+  -- Sheep animations, {type, time, args...}
   -- type: question, exclamation, delight
-  -- question/exclamation: args = time
+  -- question/exclamation: args = {}
   -- delight: args = isHorizontal, offsetInCells, speedInCellsPerStep, movingRangeMultiplier
   local sheepAnim = {}
   local ANIM_TYPE_QUESTION = 1
@@ -439,7 +439,7 @@ return function ()
       local curAnim = (a == nil and 0 or a[1])
       if sh.sheepfold and curAnim ~= ANIM_TYPE_DELIGHT then
         sheepAnim[sh] = {
-          ANIM_TYPE_DELIGHT,
+          ANIM_TYPE_DELIGHT, 0,
           (bit.band(board.grid[sh.from[1]][sh.from[2]], 8) ~= 0),
           0, math.random() < 0.5 and -1e-6 or 1e-6,
           1.05 + (math.random() - 0.5) * 0.2
@@ -455,22 +455,18 @@ return function ()
     end
     for _, a in pairs(sheepAnim) do
       if a[1] == ANIM_TYPE_DELIGHT then
-        local v = math.abs(a[4])
+        local v = math.abs(a[5])
         if v < 0.4 / 240 then v = v + (math.random() + 0.1) * (0.03 / 240)
         else v = v + (math.random() * 2 - 1) * (0.01 / 240) end
         if v > 0.7 / 240 then v = 1.1 / 240 - v end
-        if a[4] < 0 then v = -v end
-        local x = a[3] + v
+        if a[5] < 0 then v = -v end
+        local x = a[4] + v
         if x > 1 then x, v = 2 - x, -v
         elseif x < -1 then x, v = -2 - x, -v end
-        a[3] = x
-        a[4] = v
-      elseif a[1] == ANIM_TYPE_QUESTION or
-             a[1] == ANIM_TYPE_EXCLAMATION or
-             a[1] == ANIM_TYPE_QUESTION_FADE
-      then
-        a[2] = a[2] + 1
+        a[4] = x
+        a[5] = v
       end
+      a[2] = a[2] + 1
     end
     -- Update tutorial
     tut.update()
@@ -494,28 +490,43 @@ return function ()
       local a = sheepAnim[sh]
       if a ~= nil then
         if a[1] == ANIM_TYPE_DELIGHT then
-          local offs = a[3]
+          local offs = a[4]
           -- Smoothing
-          offs = a[5] * math.sin(offs * math.pi / 2)
-          if a[2] then  -- Horizontal?
+          offs = a[6] * math.sin(offs * math.pi / 2)
+          if a[3] then  -- Horizontal?
             xCen = xCen + offs * CELL_SIZE
           else
             yCen = yCen + offs * CELL_SIZE
           end
-        elseif a[1] == ANIM_TYPE_QUESTION or a[1] == ANIM_TYPE_EXCLAMATION then
+        end
+        local icon = nil
+        local yIcon, opacity
+        if a[1] == ANIM_TYPE_DELIGHT or
+           a[1] == ANIM_TYPE_QUESTION or
+           a[1] == ANIM_TYPE_EXCLAMATION
+        then
           local x = a[2] / 180
           local prog = 1
           if x < 1 then
             prog = math.exp(-10 * x) * math.sin((2 * x - 0.2) * math.pi / 0.4) + 1
           end
-          love.graphics.setColor(0, 0, 0, prog)
-          love.graphics.print(
-            a[1] == ANIM_TYPE_QUESTION and '?' or '!',
-            xCen, yCen - prog * CELL_SIZE * 0.7)
+          icon = (a[1] == ANIM_TYPE_QUESTION and '?' or
+            (a[1] == ANIM_TYPE_EXCLAMATION and '!' or '*'))
+          yIcon = yCen - prog * CELL_SIZE * 0.7
+          opacity = math.min(1, prog)
+          if a[1] == ANIM_TYPE_DELIGHT and a[2] >= 300 then
+            if a[2] < 340 then opacity = (340 - a[2]) / 40
+            else icon = nil end
+          end
         elseif a[1] == ANIM_TYPE_QUESTION_FADE then
+          icon = '?'
           prog = math.min(1, a[2] / 40)
-          love.graphics.setColor(0, 0, 0, 1 - prog)
-          love.graphics.print('?', xCen, yCen - CELL_SIZE * 0.7)
+          yIcon = yCen - CELL_SIZE * 0.7
+          opacity = 1 - prog
+        end
+        if icon ~= nil then
+          love.graphics.setColor(0, 0, 0, opacity)
+          love.graphics.print(icon, xCen, yIcon)
         end
       end
       -- Draw
