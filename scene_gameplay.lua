@@ -87,6 +87,9 @@ return function ()
     for c = 1, board.w do rotationCount[r][c] = 0 end
   end
 
+  -- Sheep animations, {rowOffset, colOffset}
+  local sheepAnim = {}
+
   local btnsStorehouse = buttons()
   local itemSprites = {
     'path1', 'path2', 'path3', 'path4', 'ice-cream_1f368'
@@ -139,37 +142,35 @@ return function ()
   local savedGrid = {}
   local savedItemCount = {}
   local savedRotationCount = {}
-  local function updateRunButtonSprite()
+  local function runButtonHandler()
+    boardRunning = not boardRunning
+    selectedItem = -1
+    boardRunProgress = 0
     btnsStorehouse.sprite(runButton,
       boardRunning and 'res/black-left-pointing-double-triangle_23ea.png' or
       'res/black-right-pointing-triangle_25b6.png')
+    if boardRunning then
+      -- Save board state
+      cloneGrid(savedGrid, board.grid)
+      cloneGrid(savedRotationCount, rotationCount)
+      for i = 1, 5 do savedItemCount[i] = itemCount[i] end
+      tut.emit('run')
+    else
+      board.reset()
+      -- Restore board state
+      cloneGrid(board.grid, savedGrid)
+      cloneGrid(rotationCount, savedRotationCount)
+      for i = 1, 5 do
+        itemCount[i] = savedItemCount[i]
+        btnsStorehouse.enable(i, itemCount[i] > 0)
+      end
+      tut.emit('stop')
+    end
   end
   runButton = btnsStorehouse.add(
     BORDER_PAD, H - BORDER_PAD - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE,
     'res/black-right-pointing-triangle_25b6.png',
-    function ()
-      boardRunning = not boardRunning
-      selectedItem = -1
-      boardRunProgress = 0
-      updateRunButtonSprite()
-      if boardRunning then
-        -- Save board state
-        cloneGrid(savedGrid, board.grid)
-        cloneGrid(savedRotationCount, rotationCount)
-        for i = 1, 5 do savedItemCount[i] = itemCount[i] end
-        tut.emit('run')
-      else
-        board.reset()
-        -- Restore board state
-        cloneGrid(board.grid, savedGrid)
-        cloneGrid(rotationCount, savedRotationCount)
-        for i = 1, 5 do
-          itemCount[i] = savedItemCount[i]
-          btnsStorehouse.enable(i, itemCount[i] > 0)
-        end
-        tut.emit('stop')
-      end
-    end
+    runButtonHandler
   )
   tutAreas['btn_run'] = {BORDER_PAD, H - BORDER_PAD - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE}
 
@@ -179,10 +180,13 @@ return function ()
     ITEM_SIZE, ITEM_SIZE,
     'res/leftwards-arrow-with-hook_21a9.png',
     function ()
-      boardRunning = false
-      updateRunButtonSprite()
+      boardRunning = true
+      runButtonHandler()  -- Trigger a board state reset
       board.reset()
       resetItemCount()
+      for r = 1, board.h do
+        for c = 1, board.w do rotationCount[r][c] = 0 end
+      end
     end
   )
 
