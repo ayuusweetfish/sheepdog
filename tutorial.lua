@@ -109,14 +109,19 @@ return function (script, areas)
         love.graphics.setColor(1, 0.95, 0.7, 0.5 * progress)
         love.graphics.rectangle('fill', x, y, w, h)
       elseif script[i][3] ~= '' then
-        local w = font:getWidth(script[i][3])
+        local s = script[i][3]
+        local w = font:getWidth(s)
         local pad = 12
+        local lines = 1
+        for i = 1, #s do
+          if s:sub(i, i) == '\n' then lines = lines + 1 end
+        end
         love.graphics.setColor(0.95, 0.95, 0.95, 0.9)
         love.graphics.rectangle('fill',
           W * script[i][1] - pad, H * script[i][2] - pad,
-          w + pad * 2, font:getHeight() + pad * 2)
+          w + pad * 2, font:getHeight() * lines + pad * 2)
         love.graphics.setColor(0, 0, 0, progress)
-        love.graphics.print(script[i][3], W * script[i][1], H * script[i][2])
+        love.graphics.print(s, W * script[i][1], H * script[i][2])
       end
     end
   end

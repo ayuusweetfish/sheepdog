@@ -17,7 +17,7 @@ local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 return function ()
   local s = {}
 
-  local board = Board.create(3)
+  local board = Board.create(4)
   local itemCount = {}
 
   local cellSizeVert = H * (0.9 - math.exp(-0.2 * (board.h + 1))) / board.h
