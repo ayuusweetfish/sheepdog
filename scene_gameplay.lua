@@ -475,41 +475,41 @@ return function ()
         board.update()
         boardRunProgress = boardRunProgress + 1
       end
-    end
-    -- Update sheep animations
-    for _, sh in ipairs(board.sheep) do
-      local a = sheepAnim[sh]
-      local curAnim = (a == nil and 0 or a[1])
-      if sh.sheepfold and curAnim ~= ANIM_TYPE_DELIGHT then
-        sheepAnim[sh] = {
-          ANIM_TYPE_DELIGHT, 0,
-          (bit.band(board.grid[sh.to[1]][sh.to[2]], 4) ~= 0),
-          0, math.random() < 0.5 and -1e-6 or 1e-6,
-          1.05 + (math.random() - 0.5) * 0.2
-        }
-      elseif sh.wrongSheepfold and curAnim ~= ANIM_TYPE_EXCLAMATION then
-        sheepAnim[sh] = {ANIM_TYPE_EXCLAMATION, 0}
-      elseif sh.confused and curAnim ~= ANIM_TYPE_QUESTION then
-        sheepAnim[sh] = {ANIM_TYPE_QUESTION, 0}
+      -- Update sheep animations
+      for _, sh in ipairs(board.sheep) do
+        local a = sheepAnim[sh]
+        local curAnim = (a == nil and 0 or a[1])
+        if sh.sheepfold and curAnim ~= ANIM_TYPE_DELIGHT then
+          sheepAnim[sh] = {
+            ANIM_TYPE_DELIGHT, 0,
+            (bit.band(board.grid[sh.to[1]][sh.to[2]], 4) ~= 0),
+            0, math.random() < 0.5 and -1e-6 or 1e-6,
+            1.05 + (math.random() - 0.5) * 0.2
+          }
+        elseif sh.wrongSheepfold and curAnim ~= ANIM_TYPE_EXCLAMATION then
+          sheepAnim[sh] = {ANIM_TYPE_EXCLAMATION, 0}
+        elseif sh.confused and curAnim ~= ANIM_TYPE_QUESTION then
+          sheepAnim[sh] = {ANIM_TYPE_QUESTION, 0}
+        end
+        if curAnim == ANIM_TYPE_QUESTION and not sh.confused then
+          sheepAnim[sh] = {ANIM_TYPE_QUESTION_FADE, 0}
+        end
       end
-      if curAnim == ANIM_TYPE_QUESTION and not sh.confused then
-        sheepAnim[sh] = {ANIM_TYPE_QUESTION_FADE, 0}
+      for _, a in pairs(sheepAnim) do
+        if a[1] == ANIM_TYPE_DELIGHT then
+          local v = math.abs(a[5])
+          if v < 0.4 / 240 then v = v + (math.random() + 0.1) * (0.03 / 240)
+          else v = v + (math.random() * 2 - 1) * (0.01 / 240) end
+          if v > 0.7 / 240 then v = 1.1 / 240 - v end
+          if a[5] < 0 then v = -v end
+          local x = a[4] + v
+          if x > 1 then x, v = 2 - x, -v
+          elseif x < -1 then x, v = -2 - x, -v end
+          a[4] = x
+          a[5] = v
+        end
+        a[2] = a[2] + 1
       end
-    end
-    for _, a in pairs(sheepAnim) do
-      if a[1] == ANIM_TYPE_DELIGHT then
-        local v = math.abs(a[5])
-        if v < 0.4 / 240 then v = v + (math.random() + 0.1) * (0.03 / 240)
-        else v = v + (math.random() * 2 - 1) * (0.01 / 240) end
-        if v > 0.7 / 240 then v = 1.1 / 240 - v end
-        if a[5] < 0 then v = -v end
-        local x = a[4] + v
-        if x > 1 then x, v = 2 - x, -v
-        elseif x < -1 then x, v = -2 - x, -v end
-        a[4] = x
-        a[5] = v
-      end
-      a[2] = a[2] + 1
     end
     -- Update tutorial
     tut.update()
@@ -532,6 +532,7 @@ return function ()
       local xCen = xStart + (c - 0.5) * CELL_SIZE
       local yCen = yStart + (r - 0.5) * CELL_SIZE
       -- Animation
+      local spriteDir = sh.dir
       local a = sheepAnim[sh]
       if a ~= nil then
         if a[1] == ANIM_TYPE_DELIGHT then
@@ -540,8 +541,10 @@ return function ()
           offs = a[6] * math.sin(offs * math.pi / 2)
           if a[3] then  -- Horizontal?
             xCen = xCen + offs * CELL_SIZE
+            spriteDir = (a[5] > 0 and 1 or 3)
           else
             yCen = yCen + offs * CELL_SIZE
+            spriteDir = (a[5] > 0 and 2 or 0)
           end
         end
         local icon = nil
@@ -581,7 +584,7 @@ return function ()
       local h = 1 - rate * 0.02
       w = CELL_SIZE * 0.95 * w
       h = CELL_SIZE * 0.9 * h
-      sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[sh.dir],
+      sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[spriteDir],
         xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, 0, w, h)
     else
       -- Maybe draw sheep walking in?
