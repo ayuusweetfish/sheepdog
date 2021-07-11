@@ -180,6 +180,8 @@ function Board.create(level)
                   dir = -1
                   confused = true
                 end
+              else
+                confused = true
               end
             end
 

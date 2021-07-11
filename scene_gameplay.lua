@@ -17,7 +17,7 @@ local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 return function ()
   local s = {}
 
-  local board = Board.create(4)
+  local board = Board.create(94)
   local itemCount = {}
 
   local cellSizeVert = H * (0.9 - math.exp(-0.2 * (board.h + 1))) / board.h
@@ -533,6 +533,8 @@ return function ()
       local yCen = yStart + (r - 0.5) * CELL_SIZE
       -- Animation
       local spriteDir = sh.dir
+      local icon = nil
+      local xIcon, yIcon, wIcon, hIcon, opacity
       local a = sheepAnim[sh]
       if a ~= nil then
         if a[1] == ANIM_TYPE_DELIGHT then
@@ -547,8 +549,6 @@ return function ()
             spriteDir = (a[5] > 0 and 2 or 0)
           end
         end
-        local icon = nil
-        local yIcon, opacity
         if a[1] == ANIM_TYPE_DELIGHT or
            a[1] == ANIM_TYPE_QUESTION or
            a[1] == ANIM_TYPE_EXCLAMATION
@@ -558,23 +558,33 @@ return function ()
           if x < 1 then
             prog = math.exp(-10 * x) * math.sin((2 * x - 0.2) * math.pi / 0.4) + 1
           end
-          icon = (a[1] == ANIM_TYPE_QUESTION and '?' or
-            (a[1] == ANIM_TYPE_EXCLAMATION and '!' or '*'))
-          yIcon = yCen - prog * CELL_SIZE * 0.7
-          opacity = math.min(1, prog)
-          if a[1] == ANIM_TYPE_DELIGHT and a[2] >= 300 then
-            if a[2] < 340 then opacity = (340 - a[2]) / 40
-            else icon = nil end
+          if a[1] == ANIM_TYPE_DELIGHT then
+            icon = (boardRunProgress % 120 < 60 and 'flowers_1' or 'flowers_2')
+            xIcon = xCen - CELL_SIZE * 0.7
+            yIcon = yCen - CELL_SIZE * 1.0
+            opacity = math.min(1, a[2] / 40)
+            if a[2] >= 300 then
+              if a[2] < 340 then opacity = (340 - a[2]) / 40
+              else icon = nil end
+            end
+            wIcon = CELL_SIZE * 1.4
+            hIcon = CELL_SIZE * 0.7
+          else
+            icon = (a[1] == ANIM_TYPE_QUESTION and 'question_mark' or 'exclamation_mark')
+            xIcon = xCen - CELL_SIZE * 0.1
+            yIcon = yCen - prog * CELL_SIZE * 1.4
+            wIcon = CELL_SIZE * 0.9
+            hIcon = CELL_SIZE * 0.9
+            opacity = math.min(1, prog)
           end
         elseif a[1] == ANIM_TYPE_QUESTION_FADE then
-          icon = '?'
+          icon = 'question_mark'
           prog = math.min(1, a[2] / 40)
-          yIcon = yCen - CELL_SIZE * 0.7
+          xIcon = xCen - CELL_SIZE * 0.1
+          yIcon = yCen - CELL_SIZE * 1.4
+          wIcon = CELL_SIZE * 0.9
+          hIcon = CELL_SIZE * 0.9
           opacity = 1 - prog
-        end
-        if icon ~= nil then
-          love.graphics.setColor(0, 0, 0, opacity)
-          love.graphics.print(icon, xCen, yIcon)
         end
       end
       -- Draw the sheep
@@ -582,10 +592,15 @@ return function ()
       local rate = math.sin((boardRunProgress + index * 123) / 50)
       local w = 1 + rate * 0.01
       local h = 1 - rate * 0.02
-      w = CELL_SIZE * 0.95 * w
+      w = CELL_SIZE * (spriteDir % 2 == 0 and 0.95 or 1.125) * w
       h = CELL_SIZE * 0.9 * h
       sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[spriteDir],
         xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, 0, w, h)
+      -- Draw the icon if there is one
+      if icon ~= nil then
+        love.graphics.setColor(1, 1, 1, opacity)
+        sprites.draw(icon, xIcon, yIcon, 0, wIcon, hIcon)
+      end
     else
       -- Maybe draw sheep walking in?
     end
@@ -682,9 +697,6 @@ return function ()
               CELL_SIZE * 0.2, CELL_SIZE * 0.5,
               0.5, 1
             )
-            sprites.draw('dog',
-              xCell + CELL_SIZE * 0.6, yCell - CELL_SIZE * 0.1,
-              0, CELL_SIZE * 0.6, CELL_SIZE * 0.6)
           end
           local ty = math.floor(board.grid[r][c] / Board.PATH)
           if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
@@ -696,6 +708,17 @@ return function ()
               CELL_SIZE * 3, CELL_SIZE
             )
           end
+        end
+      end
+    end
+    -- Dogs on the grid
+    for r = 1, board.h do
+      for c = 1, board.w do
+        if cellDog(board.grid[r][c]) ~= 0 then
+          sprites.draw('dog',
+            xStart + (c - 1) * CELL_SIZE + CELL_SIZE * 0.6,
+            yStart + (r - 1) * CELL_SIZE - CELL_SIZE * 0.3,
+            0, CELL_SIZE * 0.7, CELL_SIZE * 0.7)
         end
       end
     end
