@@ -170,6 +170,10 @@ function Board.create(level)
               local dog = cellDog(cell)
               if dog >= 1 and dog <= 4 then
                 dir = dog - 1
+                -- Not going back
+                if (dir + 2) % 4 == sh.dir then
+                  dir = -1
+                end
               end
             end
 
