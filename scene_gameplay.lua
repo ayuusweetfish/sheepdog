@@ -15,16 +15,17 @@ local BUTTON_SPACE = 24
 local ITEM_SURROUND_SPACE = 10
 local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 
+local TOP_HEIGHT = 84
+
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  -- levelIndex = levelIndex or 4
-  levelIndex = 5
+  levelIndex = levelIndex or 4
 
   local board = Board.create(levelIndex)
   local itemCount = {}
 
-  local cellSizeVert = H * 0.75 * (1 - math.exp(-0.4 * (board.h - 0.6))) / board.h
+  local cellSizeVert = H * 0.875 * (1 - math.exp(-0.4 * (board.h - 0.6))) / board.h
   local cellSizeHorz = (W - STORE_WIDTH) * 0.95 * (1 - math.exp(-0.4 * (board.w - 0.6))) / board.w
   local CELL_SIZE = math.min(cellSizeVert, cellSizeHorz)
 
@@ -231,7 +232,7 @@ sceneGameplay = function (levelIndex)
   )
 
   local xStart = (W + STORE_WIDTH) / 2 - CELL_SIZE * board.w / 2
-  local yStart = H / 2 - CELL_SIZE * board.h / 2
+  local yStart = (H + TOP_HEIGHT) / 2 - CELL_SIZE * board.h / 2
 
   for r = 1, board.h do
     for c = 1, board.w do
@@ -747,7 +748,7 @@ sceneGameplay = function (levelIndex)
         if cellDog(board.grid[r][c]) ~= 0 then
           sprites.draw('dog',
             xStart + (c - 1) * CELL_SIZE + CELL_SIZE * 0.5,
-            yStart + (r - 1) * CELL_SIZE - CELL_SIZE * 0.6,
+            yStart + (r - 1) * CELL_SIZE - CELL_SIZE * 0.7,
             0, CELL_SIZE * 1.1, CELL_SIZE * 1.1)
         end
       end
@@ -902,7 +903,7 @@ sceneGameplay = function (levelIndex)
 
     -- Progress indicator
     local xInd = STORE_WIDTH + 48
-    local yInd = H - 48
+    local yInd = 48
     local scaleInd = (W - xInd - 20) / 20
     local hInd = 48
     local pfxSum = 0
@@ -925,7 +926,7 @@ sceneGameplay = function (levelIndex)
     love.graphics.setColor(0.6, 0.6, 0.6, 0.8)
     love.graphics.setLineWidth(10)
     local xProg = xInd + math.min(boardRunProgress / Board.CELL_SUBDIV, pfxSum) * scaleInd
-    love.graphics.line(xProg, yInd - hInd / 2, xProg, yInd + hInd / 2)
+    love.graphics.line(xProg, yInd - hInd / 2 * 1.2, xProg, yInd + hInd / 2 * 1.2)
 
     tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, pfxSum * scaleInd, hInd}
 
