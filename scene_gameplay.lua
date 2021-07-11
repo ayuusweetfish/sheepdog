@@ -15,7 +15,7 @@ local STORE_WIDTH = ITEM_SIZE + BORDER_PAD * 2
 return function ()
   local s = {}
 
-  local board = Board.create(8)
+  local board = Board.create(3)
   local itemCount = {}
 
   local cellSizeVert = H * (0.9 - math.exp(-0.2 * (board.h + 1))) / board.h
@@ -463,7 +463,7 @@ return function ()
       if sh.sheepfold and curAnim ~= ANIM_TYPE_DELIGHT then
         sheepAnim[sh] = {
           ANIM_TYPE_DELIGHT, 0,
-          (bit.band(board.grid[sh.from[1]][sh.from[2]], 8) ~= 0),
+          (bit.band(board.grid[sh.from[1]][sh.from[2]], 4) ~= 0),
           0, math.random() < 0.5 and -1e-6 or 1e-6,
           1.05 + (math.random() - 0.5) * 0.2
         }
