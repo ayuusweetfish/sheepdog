@@ -234,6 +234,7 @@ function Board.create(level)
   return {
     w = w, h = h,
     gridInit = gridInit,
+    entryRow = entryRow,
     sheepFlocks = sheepFlocks,
     itemCount = itemCount,
     grid = grid,

@@ -21,8 +21,8 @@ return function ()
   local board = Board.create(4)
   local itemCount = {}
 
-  local cellSizeVert = H * (0.9 - math.exp(-0.2 * (board.h + 1))) / board.h
-  local cellSizeHorz = (W - STORE_WIDTH) * (0.95 - math.exp(-0.2 * (board.w + 1))) / board.w
+  local cellSizeVert = H * 0.75 * (1 - math.exp(-0.4 * (board.h - 0.6))) / board.h
+  local cellSizeHorz = (W - STORE_WIDTH) * 0.95 * (1 - math.exp(-0.4 * (board.w - 0.6))) / board.w
   local CELL_SIZE = math.min(cellSizeVert, cellSizeHorz)
 
   local tutAreas = {}
@@ -529,84 +529,86 @@ return function ()
   local DIR_STRING = {[0] = 'back', [1] = 'right', [2] = 'front', [3] = 'left'}
 
   local function drawSheep(index, sh)
+    local r, c
     if sh.eta == 0 then
       local prog = sh.prog / Board.CELL_SUBDIV
-      local r = sh.from[1] * (1 - prog) + sh.to[1] * prog
-      local c = sh.from[2] * (1 - prog) + sh.to[2] * prog
-      local xCen = xStart + (c - 0.5) * CELL_SIZE
-      local yCen = yStart + (r - 0.5) * CELL_SIZE
-      -- Animation
-      local spriteDir = sh.dir
-      local icon = nil
-      local xIcon, yIcon, wIcon, hIcon, opacity
-      local a = sheepAnim[sh]
-      if a ~= nil then
-        if a[1] == ANIM_TYPE_DELIGHT then
-          local offs = a[4]
-          -- Smoothing
-          offs = a[6] * math.sin(offs * math.pi / 2)
-          if a[3] then  -- Horizontal?
-            xCen = xCen + offs * CELL_SIZE
-            spriteDir = (a[5] > 0 and 1 or 3)
-          else
-            yCen = yCen + offs * CELL_SIZE
-            spriteDir = (a[5] > 0 and 2 or 0)
-          end
+      r = sh.from[1] * (1 - prog) + sh.to[1] * prog
+      c = sh.from[2] * (1 - prog) + sh.to[2] * prog
+    else
+      r = board.entryRow
+      c = -sh.eta / Board.CELL_SUBDIV
+    end
+    local xCen = xStart + (c - 0.5) * CELL_SIZE
+    local yCen = yStart + (r - 0.5) * CELL_SIZE
+    -- Animation
+    local spriteDir = sh.dir or 1
+    local icon = nil
+    local xIcon, yIcon, wIcon, hIcon, opacity
+    local a = sheepAnim[sh]
+    if a ~= nil then
+      if a[1] == ANIM_TYPE_DELIGHT then
+        local offs = a[4]
+        -- Smoothing
+        offs = a[6] * math.sin(offs * math.pi / 2)
+        if a[3] then  -- Horizontal?
+          xCen = xCen + offs * CELL_SIZE
+          spriteDir = (a[5] > 0 and 1 or 3)
+        else
+          yCen = yCen + offs * CELL_SIZE
+          spriteDir = (a[5] > 0 and 2 or 0)
         end
-        if a[1] == ANIM_TYPE_DELIGHT or
-           a[1] == ANIM_TYPE_QUESTION or
-           a[1] == ANIM_TYPE_EXCLAMATION
-        then
-          local x = a[2] / 180
-          local prog = 1
-          if x < 1 then
-            prog = math.exp(-10 * x) * math.sin((2 * x - 0.2) * math.pi / 0.4) + 1
+      end
+      if a[1] == ANIM_TYPE_DELIGHT or
+         a[1] == ANIM_TYPE_QUESTION or
+         a[1] == ANIM_TYPE_EXCLAMATION
+      then
+        local x = a[2] / 180
+        local prog = 1
+        if x < 1 then
+          prog = math.exp(-10 * x) * math.sin((2 * x - 0.2) * math.pi / 0.4) + 1
+        end
+        if a[1] == ANIM_TYPE_DELIGHT then
+          icon = (boardRunProgress % 120 < 60 and 'flowers_1' or 'flowers_2')
+          xIcon = xCen - CELL_SIZE * 0.7
+          yIcon = yCen - CELL_SIZE * 1.0
+          opacity = math.min(1, a[2] / 40)
+          if a[2] >= 300 then
+            if a[2] < 340 then opacity = (340 - a[2]) / 40
+            else icon = nil end
           end
-          if a[1] == ANIM_TYPE_DELIGHT then
-            icon = (boardRunProgress % 120 < 60 and 'flowers_1' or 'flowers_2')
-            xIcon = xCen - CELL_SIZE * 0.7
-            yIcon = yCen - CELL_SIZE * 1.0
-            opacity = math.min(1, a[2] / 40)
-            if a[2] >= 300 then
-              if a[2] < 340 then opacity = (340 - a[2]) / 40
-              else icon = nil end
-            end
-            wIcon = CELL_SIZE * 1.4
-            hIcon = CELL_SIZE * 0.7
-          else
-            icon = (a[1] == ANIM_TYPE_QUESTION and 'question_mark' or 'exclamation_mark')
-            xIcon = xCen - CELL_SIZE * 0.1
-            yIcon = yCen - prog * CELL_SIZE * 1.4
-            wIcon = CELL_SIZE * 0.9
-            hIcon = CELL_SIZE * 0.9
-            opacity = math.min(1, prog)
-          end
-        elseif a[1] == ANIM_TYPE_QUESTION_FADE then
-          icon = 'question_mark'
-          prog = math.min(1, a[2] / 40)
+          wIcon = CELL_SIZE * 1.4
+          hIcon = CELL_SIZE * 0.7
+        else
+          icon = (a[1] == ANIM_TYPE_QUESTION and 'question_mark' or 'exclamation_mark')
           xIcon = xCen - CELL_SIZE * 0.1
-          yIcon = yCen - CELL_SIZE * 1.4
+          yIcon = yCen - prog * CELL_SIZE * 1.4
           wIcon = CELL_SIZE * 0.9
           hIcon = CELL_SIZE * 0.9
-          opacity = 1 - prog
+          opacity = math.min(1, prog)
         end
+      elseif a[1] == ANIM_TYPE_QUESTION_FADE then
+        icon = 'question_mark'
+        prog = math.min(1, a[2] / 40)
+        xIcon = xCen - CELL_SIZE * 0.1
+        yIcon = yCen - CELL_SIZE * 1.4
+        wIcon = CELL_SIZE * 0.9
+        hIcon = CELL_SIZE * 0.9
+        opacity = 1 - prog
       end
-      -- Draw the sheep
-      love.graphics.setColor(1, 1, 1)
-      local rate = math.sin((boardRunProgress + index * 123) / 50)
-      local w = 1 + rate * 0.01
-      local h = 1 - rate * 0.02
-      w = CELL_SIZE * (spriteDir % 2 == 0 and 0.95 or 1.125) * w
-      h = CELL_SIZE * 0.9 * h
-      sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[spriteDir],
-        xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, 0, w, h)
-      -- Draw the icon if there is one
-      if icon ~= nil then
-        love.graphics.setColor(1, 1, 1, opacity)
-        sprites.draw(icon, xIcon, yIcon, 0, wIcon, hIcon)
-      end
-    else
-      -- Maybe draw sheep walking in?
+    end
+    -- Draw the sheep
+    love.graphics.setColor(1, 1, 1)
+    local rate = math.sin((boardRunProgress + index * 123) / 50)
+    local w = 1 + rate * 0.01
+    local h = 1 - rate * 0.02
+    w = CELL_SIZE * (spriteDir % 2 == 0 and 0.95 or 1.125) * w
+    h = CELL_SIZE * 0.9 * h
+    sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[spriteDir],
+      xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, 0, w, h)
+    -- Draw the icon if there is one
+    if icon ~= nil then
+      love.graphics.setColor(1, 1, 1, opacity)
+      sprites.draw(icon, xIcon, yIcon, 0, wIcon, hIcon)
     end
   end
 
@@ -704,6 +706,13 @@ return function ()
           end
         end
       end
+    end
+    -- Entry leading cells
+    local xEntry = xStart
+    local yEntry = yStart + (board.entryRow - 1) * CELL_SIZE
+    for i = 1, 10 do
+      sprites.draw('path_1',
+        xEntry - i * CELL_SIZE, yEntry, math.pi / 2, CELL_SIZE, CELL_SIZE)
     end
     -- Dogs on the grid
     for r = 1, board.h do
