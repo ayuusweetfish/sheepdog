@@ -15,7 +15,7 @@ local STORE_WIDTH = ITEM_SIZE + BORDER_PAD * 2
 return function ()
   local s = {}
 
-  local board = Board.create(4)
+  local board = Board.create(5)
   local itemCount = {}
 
   local cellSizeVert = H * (0.85 - math.exp(-0.2 * (board.h + 1))) / board.h
@@ -66,7 +66,8 @@ return function ()
   local cellAnim = {}
   local ANIM_TYPE_PUT = 1
   local ANIM_TYPE_REMOVE = 2
-  local ANIM_TYPE_ROTATE = 3
+  local ANIM_TYPE_ROTATE_PATH = 3
+  local ANIM_TYPE_ROTATE_DOG = 4
   local ANIM_DUR = 120
   local function easeProgRem(t)
     local x = t / ANIM_DUR
@@ -361,11 +362,12 @@ return function ()
       if dog >= 1 and dog <= 4 then
         local newDog = rotateDogForPath(dog % 4 + 1, cell)
         cell = cell + (newDog - dog) * 16
+        cellAnim[#cellAnim + 1] = {holdRow, holdCol, ANIM_TYPE_ROTATE_DOG, ANIM_DUR}
         tut.emit('rotate_dog ' .. holdRow .. ' ' .. holdCol)
       else
         local newSides = (sides * 2) % 16 + (bit.arshift(cell, 3) % 2)
         cell = cell + (newSides - sides)
-        cellAnim[#cellAnim + 1] = {holdRow, holdCol, ANIM_TYPE_ROTATE, ANIM_DUR}
+        cellAnim[#cellAnim + 1] = {holdRow, holdCol, ANIM_TYPE_ROTATE_PATH, ANIM_DUR}
         tut.emit('rotate_path ' .. holdRow .. ' ' .. holdCol)
       end
       board.grid[holdRow][holdCol] = cell
@@ -453,7 +455,7 @@ return function ()
           else
             local rotation = pathCellRotation(board.grid[r][c])
             for _, anim in ipairs(cellAnim) do
-              if anim[1] == r and anim[2] == c and anim[3] == ANIM_TYPE_ROTATE then
+              if anim[1] == r and anim[2] == c and anim[3] == ANIM_TYPE_ROTATE_PATH then
                 rotation = rotation - easeProgRem(anim[4]) * math.pi / 2
               end
             end
@@ -470,28 +472,22 @@ return function ()
           -- Draw dog
           local dog = cellDog(board.grid[r][c])
           if dog ~= 0 then
-            local x1 = (pts[dog][1] - 0.5) * 0.7
-            local y1 = (pts[dog][2] - 0.5) * 0.7
-            love.graphics.setColor(1, 0.4, 0)
-            love.graphics.setLineWidth(2)
-            love.graphics.line(
-              xCell + CELL_SIZE * 0.5,
-              yCell + CELL_SIZE * 0.5,
-              xCell + CELL_SIZE * (0.5 + x1),
-              yCell + CELL_SIZE * (0.5 + y1)
+            love.graphics.setColor(1, 1, 1)
+            local rotation = (dog - 1) * math.pi / 2
+            for _, anim in ipairs(cellAnim) do
+              if anim[1] == r and anim[2] == c and anim[3] == ANIM_TYPE_ROTATE_DOG then
+                rotation = rotation - easeProgRem(anim[4]) * math.pi / 2
+              end
+            end
+            sprites.draw('footprints',
+              xCell + CELL_SIZE * 0.4, yCell,
+              rotation,
+              CELL_SIZE * 0.2, CELL_SIZE * 0.5,
+              0.5, 1
             )
-            love.graphics.line(
-              xCell + CELL_SIZE * (0.5 + x1),
-              yCell + CELL_SIZE * (0.5 + y1),
-              xCell + CELL_SIZE * (0.5 + x1 - (x1 + y1) * 0.4),
-              yCell + CELL_SIZE * (0.5 + y1 - (x1 + y1) * 0.4)
-            )
-            love.graphics.line(
-              xCell + CELL_SIZE * (0.5 + x1),
-              yCell + CELL_SIZE * (0.5 + y1),
-              xCell + CELL_SIZE * (0.5 + x1 - (x1 - y1) * 0.4),
-              yCell + CELL_SIZE * (0.5 + y1 + (x1 - y1) * 0.4)
-            )
+            sprites.draw('ice-cream_1f368',
+              xCell + CELL_SIZE * 0.6, yCell - CELL_SIZE * 0.1,
+              0, CELL_SIZE * 0.35, CELL_SIZE * 0.45)
           end
           local ty = math.floor(board.grid[r][c] / Board.PATH)
           if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then

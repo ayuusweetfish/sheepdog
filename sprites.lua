@@ -1,13 +1,20 @@
 local cache = {}
 
-local function draw(name, x, y, r, w, h)
+local function texture(name)
   local tex = cache[name]
   if tex == nil then
     tex = love.graphics.newImage('res/' .. name .. '.png')
     cache[name] = tex
   end
+  return tex
+end
+
+local function draw(name, x, y, r, w, h, ox, oy)
+  local tex = texture(name)
   local tw, th = tex:getDimensions()
-  love.graphics.draw(tex, x + w / 2, y + h / 2, r, w / tw, h / th, tw / 2, th / 2)
+  ox = ox or 0.5
+  oy = oy or 0.5
+  love.graphics.draw(tex, x + w * ox, y + h * oy, r, w / tw, h / th, tw * ox, th * oy)
 end
 
 local function flush()
