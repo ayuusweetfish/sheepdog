@@ -95,6 +95,7 @@ return function ()
   local ANIM_TYPE_QUESTION = 1
   local ANIM_TYPE_EXCLAMATION = 2
   local ANIM_TYPE_DELIGHT = 3
+  local ANIM_TYPE_QUESTION_FADE = 4
 
   local btnsStorehouse = buttons()
   local itemSprites = {
@@ -426,7 +427,31 @@ return function ()
         i = i + 1
       end
     end
+    -- Update board
+    if boardRunning and not tut.blocksBoardUpdates() then
+      board.update()
+      boardRunProgress = boardRunProgress + 1
+    end
     -- Update sheep animations
+    for _, sh in ipairs(board.sheep) do
+      local a = sheepAnim[sh]
+      local curAnim = (a == nil and 0 or a[1])
+      if sh.sheepfold and curAnim ~= ANIM_TYPE_DELIGHT then
+        sheepAnim[sh] = {
+          ANIM_TYPE_DELIGHT,
+          (bit.band(board.grid[sh.from[1]][sh.from[2]], 8) ~= 0),
+          0, math.random() < 0.5 and -1e-6 or 1e-6,
+          1.05 + (math.random() - 0.5) * 0.2
+        }
+      elseif sh.wrongSheepfold and curAnim ~= ANIM_TYPE_EXCLAMATION then
+        sheepAnim[sh] = {ANIM_TYPE_EXCLAMATION, 0}
+      elseif sh.confused and curAnim ~= ANIM_TYPE_QUESTION then
+        sheepAnim[sh] = {ANIM_TYPE_QUESTION, 0}
+      end
+      if curAnim == ANIM_TYPE_QUESTION and not sh.confused then
+        sheepAnim[sh] = {ANIM_TYPE_QUESTION_FADE, 0}
+      end
+    end
     for _, a in pairs(sheepAnim) do
       if a[1] == ANIM_TYPE_DELIGHT then
         local v = math.abs(a[4])
@@ -439,14 +464,12 @@ return function ()
         elseif x < -1 then x, v = -2 - x, -v end
         a[3] = x
         a[4] = v
-      elseif a[1] == ANIM_TYPE_QUESTION or a[1] == ANIM_TYPE_EXCLAMATION then
+      elseif a[1] == ANIM_TYPE_QUESTION or
+             a[1] == ANIM_TYPE_EXCLAMATION or
+             a[1] == ANIM_TYPE_QUESTION_FADE
+      then
         a[2] = a[2] + 1
       end
-    end
-    -- Update board
-    if boardRunning and not tut.blocksBoardUpdates() then
-      board.update()
-      boardRunProgress = boardRunProgress + 1
     end
     -- Update tutorial
     tut.update()
@@ -468,15 +491,6 @@ return function ()
       local yCen = yStart + (r - 0.5) * CELL_SIZE
       -- Animation
       local a = sheepAnim[sh]
-      if sh.sheepfold and a == nil then
-        a = {
-          ANIM_TYPE_DELIGHT,
-          (bit.band(board.grid[sh.from[1]][sh.from[2]], 8) ~= 0),
-          0, math.random() < 0.5 and -1e-6 or 1e-6,
-          1.05 + (math.random() - 0.5) * 0.2
-        }
-        sheepAnim[sh] = a
-      end
       if a ~= nil then
         if a[1] == ANIM_TYPE_DELIGHT then
           local offs = a[3]
@@ -488,8 +502,19 @@ return function ()
             yCen = yCen + offs * CELL_SIZE
           end
         elseif a[1] == ANIM_TYPE_QUESTION or a[1] == ANIM_TYPE_EXCLAMATION then
-          local x = a[2]
-          local prog = x
+          local x = a[2] / 180
+          local prog = 1
+          if x < 1 then
+            prog = math.exp(-10 * x) * math.sin((2 * x - 0.2) * math.pi / 0.4) + 1
+          end
+          love.graphics.setColor(0, 0, 0, prog)
+          love.graphics.print(
+            a[1] == ANIM_TYPE_QUESTION and '?' or '!',
+            xCen, yCen - prog * CELL_SIZE * 0.7)
+        elseif a[1] == ANIM_TYPE_QUESTION_FADE then
+          prog = math.min(1, a[2] / 40)
+          love.graphics.setColor(0, 0, 0, 1 - prog)
+          love.graphics.print('?', xCen, yCen - CELL_SIZE * 0.7)
         end
       end
       -- Draw

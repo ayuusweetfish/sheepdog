@@ -55,6 +55,8 @@ function Board.create(level)
   -- dir: 0-3 = N/E/S/W
   -- prog: 0 = at <from>, Board.CELL_SUBDIV = at <to>
   -- sheepfold: whether already in the sheepfold
+  -- wrongSheepfold: whether in a wrong sheepfold
+  -- confused: whether confused
 
   local w, h = utf8.len(levelData[3]), #levelData - 2
   local gridInit = {}
@@ -135,6 +137,8 @@ function Board.create(level)
             sh.dir = 1
             sh.prog = 0
             sh.sheepfold = false
+            sh.wrongSheepfold = false
+            sh.confused = false
           else
             sh.eta = 1
           end
@@ -147,6 +151,7 @@ function Board.create(level)
         end
         flockLargestETA[sh.flock] = sh.eta
       else
+        local confused = false
         if sh.prog < Board.CELL_SUBDIV then
           sh.prog = sh.prog + 1
         end
@@ -173,6 +178,7 @@ function Board.create(level)
                 -- Not going back
                 if (dir + 2) % 4 == sh.dir then
                   dir = -1
+                  confused = true
                 end
               end
             end
@@ -183,7 +189,7 @@ function Board.create(level)
             if sh.flock == flock then
               sh.sheepfold = true
             else
-              error('Wrong sheepfold!')
+              sh.wrongSheepfold = true
             end
           end
 
@@ -197,6 +203,7 @@ function Board.create(level)
                 bit.band(grid[r1][c1] % 16, bit.lshift(1, (dir + 2) % 4)) == 0
             then
               dir = -1
+              confused = true
 
             -- Blocked by another sheep in the same flock?
             elseif occupy[sh.flock * w * h + r1 * w + c1] then
@@ -212,6 +219,7 @@ function Board.create(level)
             sh.prog = 0
           end
         end
+        sh.confused = confused
       end
       -- Mark destination cell as occupied
       if not sh.sheepfold and sh.to ~= nil then
