@@ -11,6 +11,7 @@ return function ()
   end
 
   s.release = function (x, y)
+    sprites.delete('game_start')
     _G['pushScene'](sceneGameplay(1))
   end
 
@@ -18,7 +19,7 @@ return function ()
   end
 
   s.draw = function ()
-    sprites.draw('background_lower', 0, 0, 0, W, H)
+    sprites.draw('game_start', 0, 0, 0, W, H)
   end
 
   return s

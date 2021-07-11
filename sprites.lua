@@ -17,11 +17,16 @@ local function draw(name, x, y, r, w, h, ox, oy)
   love.graphics.draw(tex, x + w * ox, y + h * oy, r, w / tw, h / th, tw * ox, th * oy)
 end
 
+local function delete(name)
+  cache[name] = nil
+end
+
 local function flush()
   -- No-op before spritesheets and batches are implemented
 end
 
 return {
   draw = draw,
+  delete = delete,
   flush = flush,
 }
