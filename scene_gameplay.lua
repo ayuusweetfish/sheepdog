@@ -613,10 +613,11 @@ return function ()
       end
     end
     -- Border
+    local pad = CELL_SIZE * 0.1
     love.graphics.setColor(0.1, 0.3, 0.1, 0.6)
     love.graphics.setLineWidth(3)
     love.graphics.rectangle('line',
-      xStart, yStart, CELL_SIZE * board.w, CELL_SIZE * board.h)
+      xStart - pad, yStart - pad, CELL_SIZE * board.w + pad * 2, CELL_SIZE * board.h + pad * 2)
     love.graphics.setColor(1, 1, 1)
     -- Grid
     for r = 1, board.h do
@@ -715,7 +716,7 @@ return function ()
       for r = 1, board.h do
         for c = 1, board.w do
           if feasible[r][c] then
-            love.graphics.setColor(0, 1, 0, 0.5)
+            love.graphics.setColor(1, 1, 0, 0.4)
             love.graphics.rectangle('fill',
               xStart + (c - 1) * CELL_SIZE,
               yStart + (r - 1) * CELL_SIZE,
@@ -737,11 +738,11 @@ return function ()
          feasible[pinpointRow][pinpointCol]
       then
         -- Feasible position
-        love.graphics.setColor(0.8, 0.8, 0.4, 0.6)
+        love.graphics.setColor(0.8, 0.8, 0.4, 0.4)
         alpha = 0.6
       else
         -- Item will be restored to original position if dropped here
-        love.graphics.setColor(0.9, 0.5, 0.4, 0.6)
+        love.graphics.setColor(0.9, 0.5, 0.4, 0.4)
         alpha = 0.2
       end
       local xCell = xStart + (pinpointCol - 1) * CELL_SIZE
@@ -791,10 +792,10 @@ return function ()
     btnsStorehouse.draw()
 
     -- Text
-    love.graphics.setColor(0, 0, 0)
+    love.graphics.setColor(0.95, 0.95, 0.95)
     for i = 1, 5 do
       love.graphics.print(tostring(itemCount[i]),
-        BORDER_PAD_X + ITEM_SIZE,
+        BORDER_PAD_X + ITEM_SIZE + 24,
         BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
       )
     end
