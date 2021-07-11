@@ -15,7 +15,7 @@ local STORE_WIDTH = ITEM_SIZE + BORDER_PAD * 2
 return function ()
   local s = {}
 
-  local board = Board.create(5)
+  local board = Board.create(7)
   local itemCount = {}
 
   local cellSizeVert = H * (0.85 - math.exp(-0.2 * (board.h + 1))) / board.h
@@ -87,8 +87,14 @@ return function ()
     for c = 1, board.w do rotationCount[r][c] = 0 end
   end
 
-  -- Sheep animations, {rowOffset, colOffset}
+  -- Sheep animations, {type, args...}
+  -- type: question, exclamation, delight
+  -- question/exclamation: args = time
+  -- delight: args = isHorizontal, offsetInCells, speedInCellsPerStep, movingRangeMultiplier
   local sheepAnim = {}
+  local ANIM_TYPE_QUESTION = 1
+  local ANIM_TYPE_EXCLAMATION = 2
+  local ANIM_TYPE_DELIGHT = 3
 
   local btnsStorehouse = buttons()
   local itemSprites = {
@@ -164,6 +170,8 @@ return function ()
         itemCount[i] = savedItemCount[i]
         btnsStorehouse.enable(i, itemCount[i] > 0)
       end
+      -- Stop sheep animations
+      for k in pairs(sheepAnim) do sheepAnim[k] = nil end
       tut.emit('stop')
     end
   end
@@ -406,7 +414,7 @@ return function ()
         convertHoldToPinpoint()
       end
     end
-    -- Update animations
+    -- Update cell animations
     local i = 1
     while i <= #cellAnim do
       cellAnim[i][4] = cellAnim[i][4] - 1
@@ -416,6 +424,23 @@ return function ()
         cellAnim[#cellAnim] = nil
       else
         i = i + 1
+      end
+    end
+    -- Update sheep animations
+    for _, a in pairs(sheepAnim) do
+      if a[1] == ANIM_TYPE_DELIGHT then
+        local v = math.abs(a[4])
+        if v < 0.4 / 240 then v = v + (math.random() + 0.1) * (0.03 / 240)
+        else v = v + (math.random() * 2 - 1) * (0.01 / 240) end
+        if v > 0.7 / 240 then v = 1.1 / 240 - v end
+        if a[4] < 0 then v = -v end
+        local x = a[3] + v
+        if x > 1 then x, v = 2 - x, -v
+        elseif x < -1 then x, v = -2 - x, -v end
+        a[3] = x
+        a[4] = v
+      elseif a[1] == ANIM_TYPE_QUESTION or a[1] == ANIM_TYPE_EXCLAMATION then
+        a[2] = a[2] + 1
       end
     end
     -- Update board
@@ -441,6 +466,33 @@ return function ()
       local c = sh.from[2] * (1 - prog) + sh.to[2] * prog
       local xCen = xStart + (c - 0.5) * CELL_SIZE
       local yCen = yStart + (r - 0.5) * CELL_SIZE
+      -- Animation
+      local a = sheepAnim[sh]
+      if sh.sheepfold and a == nil then
+        a = {
+          ANIM_TYPE_DELIGHT,
+          (bit.band(board.grid[sh.from[1]][sh.from[2]], 8) ~= 0),
+          0, math.random() < 0.5 and -1e-6 or 1e-6,
+          1.05 + (math.random() - 0.5) * 0.2
+        }
+        sheepAnim[sh] = a
+      end
+      if a ~= nil then
+        if a[1] == ANIM_TYPE_DELIGHT then
+          local offs = a[3]
+          -- Smoothing
+          offs = a[5] * math.sin(offs * math.pi / 2)
+          if a[2] then  -- Horizontal?
+            xCen = xCen + offs * CELL_SIZE
+          else
+            yCen = yCen + offs * CELL_SIZE
+          end
+        elseif a[1] == ANIM_TYPE_QUESTION or a[1] == ANIM_TYPE_EXCLAMATION then
+          local x = a[2]
+          local prog = x
+        end
+      end
+      -- Draw
       love.graphics.setColor(flockColour(sh.flock))
       love.graphics.circle('fill', xCen, yCen, 10)
     else
@@ -515,7 +567,8 @@ return function ()
           end
           local ty = math.floor(board.grid[r][c] / Board.PATH)
           if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
-            love.graphics.setColor(flockColour(ty - Board.TYPE_SHEEPFOLD + 1))
+            local r, g, b = flockColour(ty - Board.TYPE_SHEEPFOLD + 1)
+            love.graphics.setColor(r, g, b, 0.7)
             love.graphics.circle('fill',
               xCell + CELL_SIZE / 2, yCell + CELL_SIZE / 2, CELL_SIZE / 3)
           end
