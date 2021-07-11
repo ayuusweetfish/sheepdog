@@ -145,7 +145,7 @@ return function ()
   local boardRunProgress = 0
 
   -- Run button
-  local runButton
+  local runButton, resetButton
   local savedGrid = {}
   local savedItemCount = {}
   local savedRotationCount = {}
@@ -175,6 +175,7 @@ return function ()
       for k in pairs(sheepAnim) do sheepAnim[k] = nil end
       tut.emit('stop')
     end
+    btnsStorehouse.enable(resetButton, not boardRunning)
   end
   runButton = btnsStorehouse.add(
     BORDER_PAD, H - BORDER_PAD - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE,
@@ -184,7 +185,7 @@ return function ()
   tutAreas['btn_run'] = {BORDER_PAD, H - BORDER_PAD - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE}
 
   -- Reset button
-  btnsStorehouse.add(
+  resetButton = btnsStorehouse.add(
     BORDER_PAD, H - BORDER_PAD - ITEM_SIZE * 2 - ITEM_SPACE,
     ITEM_SIZE, ITEM_SIZE,
     'res/leftwards-arrow-with-hook_21a9.png',
