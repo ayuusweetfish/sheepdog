@@ -62,12 +62,12 @@ return function ()
     end
   end
 
-  -- Animations on each cell, {row, column, type, remaining time}
+  -- Animations on each cell, {row, column, type, remaining time, args...}
   local cellAnim = {}
   local ANIM_TYPE_PUT = 1
   local ANIM_TYPE_REMOVE = 2
   local ANIM_TYPE_ROTATE_PATH = 3
-  local ANIM_TYPE_ROTATE_DOG = 4
+  local ANIM_TYPE_ROTATE_DOG = 4  -- args = isHalfCycle (true if 1/2 cycle, false if 1/4)
   local ANIM_DUR = 120
   local function easeProgRem(t)
     local x = t / ANIM_DUR
@@ -424,7 +424,10 @@ return function ()
       if dog >= 1 and dog <= 4 then
         local newDog = rotateDogForPath(dog % 4 + 1, cell)
         cell = cell + (newDog - dog) * 16
-        cellAnim[#cellAnim + 1] = {holdRow, holdCol, ANIM_TYPE_ROTATE_DOG, ANIM_DUR}
+        cellAnim[#cellAnim + 1] = {
+          holdRow, holdCol, ANIM_TYPE_ROTATE_DOG, ANIM_DUR,
+          (dog + 2) % 4 == newDog % 4
+        }
         tut.emit('rotate_dog ' .. holdRow .. ' ' .. holdCol)
       else
         local newSides = (sides * 2) % 16 + (bit.arshift(cell, 3) % 2)
@@ -633,7 +636,8 @@ return function ()
             local rotation = (dog - 1) * math.pi / 2
             for _, anim in ipairs(cellAnim) do
               if anim[1] == r and anim[2] == c and anim[3] == ANIM_TYPE_ROTATE_DOG then
-                rotation = rotation - easeProgRem(anim[4]) * math.pi / 2
+                rotation = rotation -
+                  easeProgRem(anim[4]) * math.pi * (anim[5] and 1.0 or 0.5)
               end
             end
             sprites.draw('footprints',
