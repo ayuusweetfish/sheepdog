@@ -160,15 +160,15 @@ sceneGameplay = function (levelIndex)
   local savedRotationCount = {}
   local function updateButtonIcons()
     if boardRunning then
-      btnsStorehouse.sprite(runButton, 'res/black-left-pointing-double-triangle_23ea.png')
+      btnsStorehouse.sprite(runButton, 'res/button_stop.png')
       if boardDoubleSpeed then
-        btnsStorehouse.sprite(resetButton, 'res/ice-cream_1f368.png')
+        btnsStorehouse.sprite(resetButton, 'res/button_run.png')
       else
-        btnsStorehouse.sprite(resetButton, 'res/black-right-pointing-triangle_25b6.png')
+        btnsStorehouse.sprite(resetButton, 'res/button_ff.png')
       end
     else
-      btnsStorehouse.sprite(runButton, 'res/black-right-pointing-triangle_25b6.png')
-      btnsStorehouse.sprite(resetButton, 'res/leftwards-arrow-with-hook_21a9.png')
+      btnsStorehouse.sprite(runButton, 'res/button_run.png')
+      btnsStorehouse.sprite(resetButton, 'res/button_reset.png')
     end
   end
   local function runButtonHandler()
@@ -187,9 +187,11 @@ sceneGameplay = function (levelIndex)
       -- Restore board state
       cloneGrid(board.grid, savedGrid)
       cloneGrid(rotationCount, savedRotationCount)
-      for i = 1, 5 do
-        itemCount[i] = savedItemCount[i]
-        btnsStorehouse.enable(i, itemCount[i] > 0)
+      if savedItemCount[1] ~= nil then
+        for i = 1, 5 do
+          itemCount[i] = savedItemCount[i]
+          btnsStorehouse.enable(i, itemCount[i] > 0)
+        end
       end
       -- Stop sheep animations
       for k in pairs(sheepAnim) do sheepAnim[k] = nil end
@@ -199,7 +201,7 @@ sceneGameplay = function (levelIndex)
   end
   runButton = btnsStorehouse.add(
     BORDER_PAD_X, H - BORDER_PAD_Y - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE,
-    'res/black-right-pointing-triangle_25b6.png',
+    'res/button_run.png',
     runButtonHandler
   )
   tutAreas['btn_run'] = {BORDER_PAD_X, H - BORDER_PAD_Y - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE}
@@ -208,7 +210,7 @@ sceneGameplay = function (levelIndex)
   resetButton = btnsStorehouse.add(
     BORDER_PAD_X, H - BORDER_PAD_Y - ITEM_SIZE * 2 - BUTTON_SPACE,
     ITEM_SIZE, ITEM_SIZE,
-    'res/leftwards-arrow-with-hook_21a9.png',
+    'res/button_reset.png',
     function ()
       if boardRunning then
         -- Double speed
