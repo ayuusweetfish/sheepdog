@@ -44,6 +44,10 @@ return function ()
     btns[i].sy = sy
   end
 
+  g.selected = function ()
+    return selected
+  end
+
   -- Immediately triggers the selected button if there is one,
   -- regardless of current pointer status
   g.trigger = function ()
