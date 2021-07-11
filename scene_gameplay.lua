@@ -442,7 +442,7 @@ return function ()
           -- Draw path
           local ty = pathCellType(board.grid[r][c])
           if ty == 0 then
-            -- TODO: Handle sheepfolds with one inlet
+            -- Sheepfolds with one inlet
             love.graphics.setColor(1, 0.8, 0.6)
             love.graphics.setLineWidth(CELL_SIZE / 4)
             local dir = ctz4(board.grid[r][c] % 16)
@@ -459,6 +459,13 @@ return function ()
             end
             love.graphics.setColor(1, 1, 1)
             sprites.draw('path' .. ty, xCell, yCell, rotation, CELL_SIZE, CELL_SIZE)
+            -- Entry?
+            if bit.band(board.grid[r][c], Board.ENTRY) ~= 0 then
+              love.graphics.setColor(1, 1, 1, 0.5)
+              sprites.draw('black-right-pointing-triangle_25b6',
+                xCell + CELL_SIZE * 0.3, yCell + CELL_SIZE * 0.1,
+                0, CELL_SIZE * 0.4, CELL_SIZE * 0.4)
+            end
           end
           -- Draw dog
           local dog = cellDog(board.grid[r][c])

@@ -16,7 +16,7 @@ return {
     {6},
     "  1 ",
     "    ",
-    "─   ",
+    ">   ",
     tutorial = {
       {-1, 'btn_storehouse 1'},
       {0.12, 0.08, 'take it', 'storehouse_click 1'},
@@ -32,8 +32,8 @@ return {
     {1, 0, 0, 0, 0},
     {3},
     "ooooooooooo",
-    "┌─ ──── ──A",
-    "┘oooooooooo",
+    ">─ ──── ──A",
+    "ooooooooooo",
     tutorial = {
       {-1, 'btn_storehouse 1'},
       {0.12, 0.08, 'not enough??', 'storehouse_click 1'},
@@ -54,7 +54,7 @@ return {
     {6},
     "    1 ",
     "    │ ",
-    "── ─  ",
+    ">─ ─  ",
     tutorial = {
       {-1, 'btn_storehouse 3'},
       {0.12, 0.35, 'try the crossroads', 'storehouse_click 3'},
@@ -84,8 +84,8 @@ return {
     {4, 3, 4},
     "  1   ",
     "  │   ",
-    "┌─┴──B",
-    "┘     ",
+    ">─┴──B",
+    "      ",
     tutorial = {
       {-1, 'prog_ind'},
       {0.2, 0.85, 'this time there are two flocks', 'delay 900'},
@@ -107,13 +107,13 @@ return {
     " ┌─┼   ",
     "  o    ",
     "  o   2",
-    "─      ",
+    ">      ",
   },
   [6] = {
     {0, 0, 0, 0, 0},
     {10},
     "                             ",
-    "                            1",
+    ">                           1",
     "                             ",
   },
 }

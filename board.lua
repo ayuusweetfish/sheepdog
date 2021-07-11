@@ -19,6 +19,9 @@ local Board = {
   TYPE_SHEEPFOLD = 5, -- flock index = type - TYPE_SHEEPFOLD + 1
   TYPE_SHEEPFOLD_MAX = 5 + 16 - 1,
 
+  TYPE_MAX = 32,
+  ENTRY = 8192, -- PATH * TYPE_MAX
+
   CELL_SUBDIV = 60,
 }
 
@@ -55,6 +58,7 @@ function Board.create(level)
 
   local w, h = utf8.len(levelData[3]), #levelData - 2
   local gridInit = {}
+  local entryRow = -1
   for r = 1, h do
     local row = {}
     gridInit[r] = row
@@ -65,6 +69,7 @@ function Board.create(level)
       local map = {
         [' '] = Board.EMPTY,
         ['o'] = Board.OBSTACLE,
+        ['>'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 2 + 8 + Board.ENTRY,
         ['─'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 2 + 8,
         ['│'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 1 + 4,
         ['┌'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 2 + 4,
@@ -87,8 +92,10 @@ function Board.create(level)
       }
       char = utf8.char(char)
       row[#row + 1] = map[char]
+      if char == '>' then entryRow = r end
     end
   end
+  if entryRow == -1 then error('No entry!') end
 
   local grid = {}
 
@@ -122,9 +129,9 @@ function Board.create(level)
         sh.eta = sh.eta - 1
         if sh.eta == 0 then
           -- Appear, if not blocked
-          if not occupy[sh.flock * w * h + h * w + 1] then
-            sh.from = {h, 0}
-            sh.to = {h, 1}
+          if not occupy[sh.flock * w * h + entryRow * w + 1] then
+            sh.from = {entryRow, 0}
+            sh.to = {entryRow, 1}
             sh.dir = 1
             sh.prog = 0
             sh.sheepfold = false
@@ -151,7 +158,7 @@ function Board.create(level)
 
           -- Move
           local dir = -1
-          local ty = math.floor(cell / Board.PATH)
+          local ty = math.floor(cell / Board.PATH) % Board.TYPE_MAX
           if ty == Board.TYPE_ORDINARY_PATH then
             -- Ordinary path
             local count = popcount4(cell)
