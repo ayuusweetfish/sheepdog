@@ -19,7 +19,8 @@ return function ()
   local board = Board.create(4)
   local itemCount = {}
 
-  local tut = tutorial(board.tutorial)
+  local tutAreas = {}
+  local tut = tutorial(board.tutorial, tutAreas)
 
   -- Selected storehouse item and feasible regions
   local selectedItem = -1
@@ -101,6 +102,11 @@ return function ()
         tut.emit('storehouse_click ' .. selectedItem)
       end
     )
+    tutAreas['btn_storehouse ' .. i] = {
+      BORDER_PAD,
+      BORDER_PAD + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
+      ITEM_SIZE, ITEM_SIZE
+    }
   end
 
   local function resetItemCount()
@@ -148,6 +154,8 @@ return function ()
       end
     end
   )
+  tutAreas['btn_run'] = {BORDER_PAD, H - BORDER_PAD - 50, 50, 50}
+
   -- Reset button
   btnsStorehouse.add(
     BORDER_PAD + 50, H - BORDER_PAD - 50, 50, 50,
@@ -163,6 +171,16 @@ return function ()
   local xStart = (W + STORE_WIDTH) / 2 - CELL_SIZE * board.w / 2
   local yStart = H / 2 - CELL_SIZE * board.h / 2
 
+  for r = 1, board.h do
+    for c = 1, board.w do
+      tutAreas['cell ' .. r .. ' ' .. c] = {
+        xStart + (c - 1) * CELL_SIZE,
+        yStart + (r - 1) * CELL_SIZE,
+        CELL_SIZE, CELL_SIZE
+      }
+    end
+  end
+
   local function cellPos(x, y)
     return math.floor((y - yStart) / CELL_SIZE) + 1,
            math.floor((x - xStart) / CELL_SIZE) + 1
@@ -177,7 +195,7 @@ return function ()
   local dragToStorehouse = false
 
   s.press = function (x, y)
-    if tut.blocksInteractions() then return end
+    if tut.blocksInteractions(x, y) then return end
     if btnsStorehouse.press(x, y) then return end
     if x >= STORE_WIDTH then
       local r, c = cellPos(x, y)
@@ -336,12 +354,12 @@ return function ()
       if dog >= 1 and dog <= 4 then
         local newDog = rotateDogForPath(dog % 4 + 1, cell)
         cell = cell + (newDog - dog) * 16
-        tut.emit('rotate_dog')
+        tut.emit('rotate_dog ' .. holdRow .. ' ' .. holdCol)
       else
         local newSides = (sides * 2) % 16 + (bit.arshift(cell, 3) % 2)
         cell = cell + (newSides - sides)
         cellAnim[#cellAnim + 1] = {holdRow, holdCol, ANIM_TYPE_ROTATE, ANIM_DUR}
-        tut.emit('rotate_path')
+        tut.emit('rotate_path ' .. holdRow .. ' ' .. holdCol)
       end
       board.grid[holdRow][holdCol] = cell
     end
@@ -562,21 +580,28 @@ return function ()
     -- Progress indicator
     local xInd = STORE_WIDTH + 80
     local yInd = H - 32
-    local scaleInd = (W - STORE_WIDTH - 100) / 30
+    local scaleInd = (W - xInd - 20) / 30
     local pfxSum = 0
     for _, flock in ipairs(board.sheepFlocks) do
       local newSum = pfxSum + flock[2]
-      love.graphics.setColor(flockColour(flock[1]))
       for i = pfxSum, newSum - 1 do
-        love.graphics.circle('fill',
-          xInd + (i + 1) * scaleInd, yInd, 12
-        )
+        if flock[1] ~= -1 then
+          love.graphics.setColor(flockColour(flock[1]))
+          love.graphics.circle('fill', xInd + (i + 0.5) * scaleInd, yInd, 12)
+        else
+          love.graphics.setColor(0.9, 0.9, 0.9)
+          love.graphics.setLineWidth(1)
+          love.graphics.circle('line', xInd + (i + 0.5) * scaleInd, yInd, 12)
+        end
       end
       pfxSum = newSum
     end
     love.graphics.setColor(0.6, 0.6, 0.6, 0.8)
+    love.graphics.setLineWidth(10)
     local xProg = xInd + math.min(boardRunProgress / Board.CELL_SUBDIV, pfxSum) * scaleInd
     love.graphics.line(xProg, yInd - 12, xProg, yInd + 12)
+
+    tutAreas['prog_ind'] = {xInd, yInd - 12, pfxSum * scaleInd, 24}
 
     -- Tutorial, if any
     tut.draw()
