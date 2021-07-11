@@ -33,7 +33,7 @@ uti = "moe.kawa.sheepdog"
 # An arbitrary version for the current iteration of the game. Can use
 # any desired version format. This will be used to differentiate the
 # resulting build files.
-version = "v0.9.0"
+version = "v0.9.1"
 
 #
 # Build settings
