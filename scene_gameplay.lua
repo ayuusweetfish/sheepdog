@@ -118,16 +118,19 @@ return function ()
   local runButton
   local savedGrid = {}
   local savedItemCount = {}
+  local function updateRunButtonSprite()
+    btnsStorehouse.sprite(runButton,
+      boardRunning and 'res/black-left-pointing-double-triangle_23ea.png' or
+      'res/black-right-pointing-triangle_25b6.png')
+  end
   runButton = btnsStorehouse.add(
     BORDER_PAD, H - BORDER_PAD - 50, 50, 50,
     'res/black-right-pointing-triangle_25b6.png',
     function ()
       boardRunning = not boardRunning
       selectedItem = -1
-      btnsStorehouse.sprite(runButton,
-        boardRunning and 'res/black-left-pointing-double-triangle_23ea.png' or
-        'res/black-right-pointing-triangle_25b6.png')
       boardRunProgress = 0
+      updateRunButtonSprite()
       if boardRunning then
         -- Save board state
         cloneGrid(savedGrid, board.grid)
@@ -151,6 +154,7 @@ return function ()
     'res/leftwards-arrow-with-hook_21a9.png',
     function ()
       boardRunning = false
+      updateRunButtonSprite()
       board.reset()
       resetItemCount()
     end
