@@ -1,5 +1,3 @@
-local font = love.graphics.getFont()
-
 -- script: list of items to be displayed
 --   {{x, y, object, action, flags}, ...}
 -- if object is string, text is shown
@@ -17,6 +15,8 @@ local font = love.graphics.getFont()
 --   { name = { x, y, w, h }, ... }
 return function (script, areas)
   local t = {}
+
+  local font = love.graphics.getFont()
 
   script = script or {}
   local current = 1
@@ -93,7 +93,7 @@ return function (script, areas)
       if script[i][5] ~= nil and script[i][5].instant then progress = 1 end
       if script[i][1] == -1 then
         local a = areas[script[i][2]]
-        local PAD = 5
+        local PAD = 16
         local xCen = a[1] + a[3] / 2
         local yCen = a[2] + a[4] / 2
         local w = a[3] + PAD * 2
@@ -107,9 +107,20 @@ return function (script, areas)
         love.graphics.rectangle('line', x, y, w, h)
         love.graphics.setColor(1, 0.95, 0.7, 0.5 * progress)
         love.graphics.rectangle('fill', x, y, w, h)
-      else
+      elseif script[i][3] ~= '' then
+        local s = script[i][3]
+        local w = font:getWidth(s)
+        local pad = 12
+        local lines = 1
+        for i = 1, #s do
+          if s:sub(i, i) == '\n' then lines = lines + 1 end
+        end
+        love.graphics.setColor(0.95, 0.95, 0.95, 0.9)
+        love.graphics.rectangle('fill',
+          W * script[i][1] - pad, H * script[i][2] - pad,
+          w + pad * 2, font:getHeight() * lines + pad * 2)
         love.graphics.setColor(0, 0, 0, progress)
-        love.graphics.print(script[i][3], W * script[i][1], H * script[i][2])
+        love.graphics.print(s, W * script[i][1], H * script[i][2])
       end
     end
   end

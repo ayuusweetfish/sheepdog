@@ -9,6 +9,7 @@ local Board = {
   -- cell types
   EMPTY = 0,
   OBSTACLE = 1,
+  OBSTACLE_SHEEPFOLD = 2,
 
   PATH = 256,
   -- bits 0, 1, 2, 3: path N/E/S/W
@@ -99,6 +100,26 @@ function Board.create(level)
   end
   if entryRow == -1 then error('No entry!') end
 
+  -- Mark obstacles by sheepfolds
+  for r = 1, h do
+    for c = 1, w do
+      local cell = gridInit[r][c]
+      local ty = math.floor(cell / Board.PATH) % Board.TYPE_MAX
+      if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
+        if bit.band(cell, 4) ~= 0 then
+          -- Down-facing
+          if c - 1 < 1 or c + 1 > w then error('Insufficient space for sheepfold') end
+          gridInit[r][c - 1] = Board.OBSTACLE_SHEEPFOLD
+          gridInit[r][c + 1] = Board.OBSTACLE_SHEEPFOLD
+        else
+          if r - 1 < 1 or r + 1 > h then error('Insufficient space for sheepfold') end
+          gridInit[r - 1][c] = Board.OBSTACLE_SHEEPFOLD
+          gridInit[r + 1][c] = Board.OBSTACLE_SHEEPFOLD
+        end
+      end
+    end
+  end
+
   local grid = {}
 
   local function reset()
@@ -180,6 +201,8 @@ function Board.create(level)
                   dir = -1
                   confused = true
                 end
+              else
+                confused = true
               end
             end
 
@@ -232,6 +255,7 @@ function Board.create(level)
   return {
     w = w, h = h,
     gridInit = gridInit,
+    entryRow = entryRow,
     sheepFlocks = sheepFlocks,
     itemCount = itemCount,
     grid = grid,

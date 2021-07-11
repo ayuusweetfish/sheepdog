@@ -12,16 +12,17 @@ local BORDER_PAD_Y = 24
 local ITEM_SIZE = 64
 local ITEM_SPACE = 36
 local BUTTON_SPACE = 24
+local ITEM_SURROUND_SPACE = 10
 local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 
 return function ()
   local s = {}
 
-  local board = Board.create(5)
+  local board = Board.create(4)
   local itemCount = {}
 
-  local cellSizeVert = H * (0.9 - math.exp(-0.2 * (board.h + 1))) / board.h
-  local cellSizeHorz = (W - STORE_WIDTH) * (0.95 - math.exp(-0.2 * (board.w + 1))) / board.w
+  local cellSizeVert = H * 0.75 * (1 - math.exp(-0.4 * (board.h - 0.6))) / board.h
+  local cellSizeHorz = (W - STORE_WIDTH) * 0.95 * (1 - math.exp(-0.4 * (board.w - 0.6))) / board.w
   local CELL_SIZE = math.min(cellSizeVert, cellSizeHorz)
 
   local tutAreas = {}
@@ -134,6 +135,9 @@ return function ()
       ITEM_SIZE, ITEM_SIZE
     }
   end
+
+  -- Text objects for count display
+  local textCount = {}
 
   local function resetItemCount()
     for i = 1, 5 do
@@ -475,41 +479,41 @@ return function ()
         board.update()
         boardRunProgress = boardRunProgress + 1
       end
-    end
-    -- Update sheep animations
-    for _, sh in ipairs(board.sheep) do
-      local a = sheepAnim[sh]
-      local curAnim = (a == nil and 0 or a[1])
-      if sh.sheepfold and curAnim ~= ANIM_TYPE_DELIGHT then
-        sheepAnim[sh] = {
-          ANIM_TYPE_DELIGHT, 0,
-          (bit.band(board.grid[sh.to[1]][sh.to[2]], 4) ~= 0),
-          0, math.random() < 0.5 and -1e-6 or 1e-6,
-          1.05 + (math.random() - 0.5) * 0.2
-        }
-      elseif sh.wrongSheepfold and curAnim ~= ANIM_TYPE_EXCLAMATION then
-        sheepAnim[sh] = {ANIM_TYPE_EXCLAMATION, 0}
-      elseif sh.confused and curAnim ~= ANIM_TYPE_QUESTION then
-        sheepAnim[sh] = {ANIM_TYPE_QUESTION, 0}
+      -- Update sheep animations
+      for _, sh in ipairs(board.sheep) do
+        local a = sheepAnim[sh]
+        local curAnim = (a == nil and 0 or a[1])
+        if sh.sheepfold and curAnim ~= ANIM_TYPE_DELIGHT then
+          sheepAnim[sh] = {
+            ANIM_TYPE_DELIGHT, 0,
+            (bit.band(board.grid[sh.to[1]][sh.to[2]], 4) ~= 0),
+            0, math.random() < 0.5 and -1e-6 or 1e-6,
+            1.05 + (math.random() - 0.5) * 0.2
+          }
+        elseif sh.wrongSheepfold and curAnim ~= ANIM_TYPE_EXCLAMATION then
+          sheepAnim[sh] = {ANIM_TYPE_EXCLAMATION, 0}
+        elseif sh.confused and curAnim ~= ANIM_TYPE_QUESTION then
+          sheepAnim[sh] = {ANIM_TYPE_QUESTION, 0}
+        end
+        if curAnim == ANIM_TYPE_QUESTION and not sh.confused then
+          sheepAnim[sh] = {ANIM_TYPE_QUESTION_FADE, 0}
+        end
       end
-      if curAnim == ANIM_TYPE_QUESTION and not sh.confused then
-        sheepAnim[sh] = {ANIM_TYPE_QUESTION_FADE, 0}
+      for _, a in pairs(sheepAnim) do
+        if a[1] == ANIM_TYPE_DELIGHT then
+          local v = math.abs(a[5])
+          if v < 0.4 / 240 then v = v + (math.random() + 0.1) * (0.03 / 240)
+          else v = v + (math.random() * 2 - 1) * (0.01 / 240) end
+          if v > 0.7 / 240 then v = 1.1 / 240 - v end
+          if a[5] < 0 then v = -v end
+          local x = a[4] + v
+          if x > 1 then x, v = 2 - x, -v
+          elseif x < -1 then x, v = -2 - x, -v end
+          a[4] = x
+          a[5] = v
+        end
+        a[2] = a[2] + 1
       end
-    end
-    for _, a in pairs(sheepAnim) do
-      if a[1] == ANIM_TYPE_DELIGHT then
-        local v = math.abs(a[5])
-        if v < 0.4 / 240 then v = v + (math.random() + 0.1) * (0.03 / 240)
-        else v = v + (math.random() * 2 - 1) * (0.01 / 240) end
-        if v > 0.7 / 240 then v = 1.1 / 240 - v end
-        if a[5] < 0 then v = -v end
-        local x = a[4] + v
-        if x > 1 then x, v = 2 - x, -v
-        elseif x < -1 then x, v = -2 - x, -v end
-        a[4] = x
-        a[5] = v
-      end
-      a[2] = a[2] + 1
     end
     -- Update tutorial
     tut.update()
@@ -525,66 +529,86 @@ return function ()
   local DIR_STRING = {[0] = 'back', [1] = 'right', [2] = 'front', [3] = 'left'}
 
   local function drawSheep(index, sh)
+    local r, c
     if sh.eta == 0 then
       local prog = sh.prog / Board.CELL_SUBDIV
-      local r = sh.from[1] * (1 - prog) + sh.to[1] * prog
-      local c = sh.from[2] * (1 - prog) + sh.to[2] * prog
-      local xCen = xStart + (c - 0.5) * CELL_SIZE
-      local yCen = yStart + (r - 0.5) * CELL_SIZE
-      -- Animation
-      local a = sheepAnim[sh]
-      if a ~= nil then
-        if a[1] == ANIM_TYPE_DELIGHT then
-          local offs = a[4]
-          -- Smoothing
-          offs = a[6] * math.sin(offs * math.pi / 2)
-          if a[3] then  -- Horizontal?
-            xCen = xCen + offs * CELL_SIZE
-          else
-            yCen = yCen + offs * CELL_SIZE
-          end
+      r = sh.from[1] * (1 - prog) + sh.to[1] * prog
+      c = sh.from[2] * (1 - prog) + sh.to[2] * prog
+    else
+      r = board.entryRow
+      c = -sh.eta / Board.CELL_SUBDIV
+    end
+    local xCen = xStart + (c - 0.5) * CELL_SIZE
+    local yCen = yStart + (r - 0.5) * CELL_SIZE
+    -- Animation
+    local spriteDir = sh.dir or 1
+    local icon = nil
+    local xIcon, yIcon, wIcon, hIcon, opacity
+    local a = sheepAnim[sh]
+    if a ~= nil then
+      if a[1] == ANIM_TYPE_DELIGHT then
+        local offs = a[4]
+        -- Smoothing
+        offs = a[6] * math.sin(offs * math.pi / 2)
+        if a[3] then  -- Horizontal?
+          xCen = xCen + offs * CELL_SIZE
+          spriteDir = (a[5] > 0 and 1 or 3)
+        else
+          yCen = yCen + offs * CELL_SIZE
+          spriteDir = (a[5] > 0 and 2 or 0)
         end
-        local icon = nil
-        local yIcon, opacity
-        if a[1] == ANIM_TYPE_DELIGHT or
-           a[1] == ANIM_TYPE_QUESTION or
-           a[1] == ANIM_TYPE_EXCLAMATION
-        then
-          local x = a[2] / 180
-          local prog = 1
-          if x < 1 then
-            prog = math.exp(-10 * x) * math.sin((2 * x - 0.2) * math.pi / 0.4) + 1
-          end
-          icon = (a[1] == ANIM_TYPE_QUESTION and '?' or
-            (a[1] == ANIM_TYPE_EXCLAMATION and '!' or '*'))
-          yIcon = yCen - prog * CELL_SIZE * 0.7
-          opacity = math.min(1, prog)
-          if a[1] == ANIM_TYPE_DELIGHT and a[2] >= 300 then
+      end
+      if a[1] == ANIM_TYPE_DELIGHT or
+         a[1] == ANIM_TYPE_QUESTION or
+         a[1] == ANIM_TYPE_EXCLAMATION
+      then
+        local x = a[2] / 180
+        local prog = 1
+        if x < 1 then
+          prog = math.exp(-10 * x) * math.sin((2 * x - 0.2) * math.pi / 0.4) + 1
+        end
+        if a[1] == ANIM_TYPE_DELIGHT then
+          icon = (boardRunProgress % 120 < 60 and 'flowers_1' or 'flowers_2')
+          xIcon = xCen - CELL_SIZE * 0.7
+          yIcon = yCen - CELL_SIZE * 1.0
+          opacity = math.min(1, a[2] / 40)
+          if a[2] >= 300 then
             if a[2] < 340 then opacity = (340 - a[2]) / 40
             else icon = nil end
           end
-        elseif a[1] == ANIM_TYPE_QUESTION_FADE then
-          icon = '?'
-          prog = math.min(1, a[2] / 40)
-          yIcon = yCen - CELL_SIZE * 0.7
-          opacity = 1 - prog
+          wIcon = CELL_SIZE * 1.4
+          hIcon = CELL_SIZE * 0.7
+        else
+          icon = (a[1] == ANIM_TYPE_QUESTION and 'question_mark' or 'exclamation_mark')
+          xIcon = xCen - CELL_SIZE * 0.1
+          yIcon = yCen - prog * CELL_SIZE * 1.4
+          wIcon = CELL_SIZE * 0.9
+          hIcon = CELL_SIZE * 0.9
+          opacity = math.min(1, prog)
         end
-        if icon ~= nil then
-          love.graphics.setColor(0, 0, 0, opacity)
-          love.graphics.print(icon, xCen, yIcon)
-        end
+      elseif a[1] == ANIM_TYPE_QUESTION_FADE then
+        icon = 'question_mark'
+        prog = math.min(1, a[2] / 40)
+        xIcon = xCen - CELL_SIZE * 0.1
+        yIcon = yCen - CELL_SIZE * 1.4
+        wIcon = CELL_SIZE * 0.9
+        hIcon = CELL_SIZE * 0.9
+        opacity = 1 - prog
       end
-      -- Draw the sheep
-      love.graphics.setColor(1, 1, 1)
-      local rate = math.sin((boardRunProgress + index * 123) / 50)
-      local w = 1 + rate * 0.01
-      local h = 1 - rate * 0.02
-      w = CELL_SIZE * 0.95 * w
-      h = CELL_SIZE * 0.9 * h
-      sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[sh.dir],
-        xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, 0, w, h)
-    else
-      -- Maybe draw sheep walking in?
+    end
+    -- Draw the sheep
+    love.graphics.setColor(1, 1, 1)
+    local rate = math.sin((boardRunProgress + index * 123) / 50)
+    local w = 1 + rate * 0.01
+    local h = 1 - rate * 0.02
+    w = CELL_SIZE * (spriteDir % 2 == 0 and 0.95 or 1.125) * w
+    h = CELL_SIZE * 0.9 * h
+    sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[spriteDir],
+      xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, 0, w, h)
+    -- Draw the icon if there is one
+    if icon ~= nil then
+      love.graphics.setColor(1, 1, 1, opacity)
+      sprites.draw(icon, xIcon, yIcon, 0, wIcon, hIcon)
     end
   end
 
@@ -613,10 +637,11 @@ return function ()
       end
     end
     -- Border
-    love.graphics.setColor(0.1, 0.3, 0.1, 0.8)
+    local pad = CELL_SIZE * 0.1
+    love.graphics.setColor(0.1, 0.3, 0.1, 0.6)
     love.graphics.setLineWidth(3)
     love.graphics.rectangle('line',
-      xStart, yStart, CELL_SIZE * board.w, CELL_SIZE * board.h)
+      xStart - pad, yStart - pad, CELL_SIZE * board.w + pad * 2, CELL_SIZE * board.h + pad * 2)
     love.graphics.setColor(1, 1, 1)
     -- Grid
     for r = 1, board.h do
@@ -678,20 +703,25 @@ return function ()
               CELL_SIZE * 0.2, CELL_SIZE * 0.5,
               0.5, 1
             )
-            sprites.draw('dog',
-              xCell + CELL_SIZE * 0.6, yCell - CELL_SIZE * 0.1,
-              0, CELL_SIZE * 0.6, CELL_SIZE * 0.6)
           end
-          local ty = math.floor(board.grid[r][c] / Board.PATH)
-          if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
-            -- Draw sheepfold
-            local index = (ty - Board.TYPE_SHEEPFOLD + 1)
-            sprites.draw('fence_' .. index,
-              xCell - CELL_SIZE, yCell,
-              (bit.band(board.grid[r][c], 4) ~= 0 and 0 or math.pi / 2),
-              CELL_SIZE * 3, CELL_SIZE
-            )
-          end
+        end
+      end
+    end
+    -- Entry leading cells
+    local xEntry = xStart
+    local yEntry = yStart + (board.entryRow - 1) * CELL_SIZE
+    for i = 1, 10 do
+      sprites.draw('path_1',
+        xEntry - i * CELL_SIZE, yEntry, math.pi / 2, CELL_SIZE, CELL_SIZE)
+    end
+    -- Dogs on the grid
+    for r = 1, board.h do
+      for c = 1, board.w do
+        if cellDog(board.grid[r][c]) ~= 0 then
+          sprites.draw('dog',
+            xStart + (c - 1) * CELL_SIZE + CELL_SIZE * 0.6,
+            yStart + (r - 1) * CELL_SIZE - CELL_SIZE * 0.3,
+            0, CELL_SIZE * 0.7, CELL_SIZE * 0.7)
         end
       end
     end
@@ -715,7 +745,7 @@ return function ()
       for r = 1, board.h do
         for c = 1, board.w do
           if feasible[r][c] then
-            love.graphics.setColor(0, 1, 0, 0.5)
+            love.graphics.setColor(1, 1, 0, 0.4)
             love.graphics.rectangle('fill',
               xStart + (c - 1) * CELL_SIZE,
               yStart + (r - 1) * CELL_SIZE,
@@ -737,11 +767,11 @@ return function ()
          feasible[pinpointRow][pinpointCol]
       then
         -- Feasible position
-        love.graphics.setColor(0.8, 0.8, 0.4, 0.6)
+        love.graphics.setColor(0.8, 0.8, 0.4, 0.4)
         alpha = 0.6
       else
         -- Item will be restored to original position if dropped here
-        love.graphics.setColor(0.9, 0.5, 0.4, 0.6)
+        love.graphics.setColor(0.9, 0.5, 0.4, 0.4)
         alpha = 0.2
       end
       local xCell = xStart + (pinpointCol - 1) * CELL_SIZE
@@ -762,7 +792,31 @@ return function ()
         CELL_SIZE, CELL_SIZE)
     end
 
-    for i, sh in ipairs(board.sheep) do drawSheep(i, sh) end
+    -- Sheep in the sheepfolds
+    for i, sh in ipairs(board.sheep) do
+      if sh.sheepfold then drawSheep(i, sh) end
+    end
+    -- Sheepfolds
+    love.graphics.setColor(1, 1, 1)
+    for r = 1, board.h do
+      for c = 1, board.w do
+        local ty = math.floor(board.grid[r][c] / Board.PATH)
+        if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
+          -- Draw sheepfold
+          local index = (ty - Board.TYPE_SHEEPFOLD + 1)
+          sprites.draw('fence_' .. index,
+            xStart + (c - 2) * CELL_SIZE,
+            yStart + (r - 1) * CELL_SIZE,
+            (bit.band(board.grid[r][c], 4) ~= 0 and 0 or math.pi / 2),
+            CELL_SIZE * 3, CELL_SIZE
+          )
+        end
+      end
+    end
+    -- Sheep not in the sheepfolds
+    for i, sh in ipairs(board.sheep) do
+      if not sh.sheepfold then drawSheep(i, sh) end
+    end
 
     -- Storehouse buttons
     -- First, background
@@ -776,44 +830,67 @@ return function ()
       else
         love.graphics.setColor(0.9, 0.9, 0.9)
       end
-      local space = ITEM_SPACE * 0.3
       love.graphics.rectangle('fill',
-        BORDER_PAD_X - space,
-        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - space,
-        ITEM_SIZE + space * 2, ITEM_SIZE + space * 2)
-      love.graphics.setColor(0.45, 0.25, 0.1)
-      love.graphics.setLineWidth(3)
-      love.graphics.rectangle('line',
-        BORDER_PAD_X - space,
-        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - space,
-        ITEM_SIZE + space * 2, ITEM_SIZE + space * 2)
+        BORDER_PAD_X - ITEM_SURROUND_SPACE,
+        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - ITEM_SURROUND_SPACE,
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2)
     end
+
+    -- Buttons themselves
     btnsStorehouse.draw()
 
     -- Text
-    love.graphics.setColor(0, 0, 0)
     for i = 1, 5 do
-      love.graphics.print(tostring(itemCount[i]),
-        BORDER_PAD_X + ITEM_SIZE,
-        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
+      local text = textCount[itemCount[i]]
+      if text == nil then
+        text = love.graphics.newText(_G['font_Mali'], tostring(itemCount[i]))
+        textCount[itemCount[i]] = text
+      end
+      local textSize = 24
+      local xText = BORDER_PAD_X
+        + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
+      local yText = BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
+        + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
+      love.graphics.setColor(0.2, 0.2, 0.2, 0.75)
+      love.graphics.rectangle('fill', xText, yText, textSize, textSize)
+      local textScale = 0.75
+      love.graphics.setColor(0.95, 0.95, 0.95)
+      love.graphics.draw(text,
+        xText + (textSize - text:getWidth() * textScale) / 2, yText - 2,
+        0, textScale, textScale
       )
     end
 
+    -- Frames around buttons
+    for i = 1, 5 do
+      love.graphics.setColor(0.5, 0.3, 0.1)
+      love.graphics.setLineWidth(3)
+      love.graphics.rectangle('line',
+        BORDER_PAD_X - ITEM_SURROUND_SPACE,
+        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - ITEM_SURROUND_SPACE,
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2)
+    end
+
     -- Progress indicator
-    local xInd = STORE_WIDTH + 80
-    local yInd = H - 32
-    local scaleInd = (W - xInd - 20) / 30
+    local xInd = STORE_WIDTH + 48
+    local yInd = H - 48
+    local scaleInd = (W - xInd - 20) / 20
+    local hInd = 48
     local pfxSum = 0
     for _, flock in ipairs(board.sheepFlocks) do
       local newSum = pfxSum + flock[2]
       for i = pfxSum, newSum - 1 do
         if flock[1] ~= -1 then
-          love.graphics.setColor(flockColour(flock[1]))
-          love.graphics.circle('fill', xInd + (i + 0.5) * scaleInd, yInd, 12)
+          love.graphics.setColor(1, 1, 1)
+          sprites.draw('sheep_' .. flock[1] .. '_front',
+            xInd + (i + 0.5) * scaleInd - hInd / 2,
+            yInd - hInd / 2, 0, hInd, hInd)
         else
-          love.graphics.setColor(0.9, 0.9, 0.9)
+          love.graphics.setColor(0, 0, 0, 0.3)
           love.graphics.setLineWidth(1)
-          love.graphics.circle('line', xInd + (i + 0.5) * scaleInd, yInd, 12)
+          love.graphics.circle('line', xInd + (i + 0.5) * scaleInd, yInd, hInd * 0.9 / 2)
         end
       end
       pfxSum = newSum
@@ -821,9 +898,9 @@ return function ()
     love.graphics.setColor(0.6, 0.6, 0.6, 0.8)
     love.graphics.setLineWidth(10)
     local xProg = xInd + math.min(boardRunProgress / Board.CELL_SUBDIV, pfxSum) * scaleInd
-    love.graphics.line(xProg, yInd - 12, xProg, yInd + 12)
+    love.graphics.line(xProg, yInd - hInd / 2, xProg, yInd + hInd / 2)
 
-    tutAreas['prog_ind'] = {xInd, yInd - 12, pfxSum * scaleInd, 24}
+    tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, pfxSum * scaleInd, hInd}
 
     -- Tutorial, if any
     tut.draw()
