@@ -20,7 +20,7 @@ local TOP_HEIGHT = 84
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  levelIndex = levelIndex or 4
+  levelIndex = 4--levelIndex or 4
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -311,15 +311,7 @@ sceneGameplay = function (levelIndex)
       board.grid[pinpointRow][pinpointCol] = cell - dog * 16
     else
       -- Moving path
-      -- Is any sheep going here?
-      local sheepComing = false
-      for _, sh in ipairs(board.sheep) do
-        if sh.to ~= nil and sh.to[1] == pinpointRow and sh.to[2] == pinpointCol then
-          sheepComing = true
-          break
-        end
-      end
-      if sheepComing then
+      if boardRunning then
         -- Cancel
         pinpointingItem = false
         selectedItem = -1
@@ -441,7 +433,7 @@ sceneGameplay = function (levelIndex)
           (dog + 2) % 4 == newDog % 4
         }
         tut.emit('rotate_dog ' .. holdRow .. ' ' .. holdCol)
-      else
+      elseif not boardRunning then
         local newSides = (sides * 2) % 16 + (bit.arshift(cell, 3) % 2)
         cell = cell + (newSides - sides)
         cellAnim[#cellAnim + 1] = {holdRow, holdCol, ANIM_TYPE_ROTATE_PATH, ANIM_DUR}
