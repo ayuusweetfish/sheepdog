@@ -298,6 +298,21 @@ return function ()
       selectedValue = dog
       board.grid[pinpointRow][pinpointCol] = cell - dog * 16
     else
+      -- Moving path
+      -- Is any sheep going here?
+      local sheepComing = false
+      for _, sh in ipairs(board.sheep) do
+        if sh.to ~= nil and sh.to[1] == pinpointRow and sh.to[2] == pinpointCol then
+          sheepComing = true
+          break
+        end
+      end
+      if sheepComing then
+        -- Cancel
+        pinpointingItem = false
+        selectedItem = -1
+        return
+      end
       selectedItem = pathCellType(cell)
       selectedValue = cell % 16
       board.grid[pinpointRow][pinpointCol] = Board.EMPTY
