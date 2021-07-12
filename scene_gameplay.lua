@@ -49,7 +49,7 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  levelIndex = 3--levelIndex or 4
+  -- levelIndex = 5
 
   local board = Board.create(levelIndex)
   local itemCount = {}
