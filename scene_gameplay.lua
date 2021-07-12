@@ -734,6 +734,27 @@ sceneGameplay = function (levelIndex)
       sprites.draw('path_1',
         xEntry - i * CELL_SIZE, yEntry, math.pi / 2, CELL_SIZE, CELL_SIZE)
     end
+    -- Sheep in the sheepfolds
+    for i, sh in ipairs(board.sheep) do
+      if sh.sheepfold then drawSheep(i, sh) end
+    end
+    -- Sheepfolds
+    love.graphics.setColor(1, 1, 1)
+    for r = 1, board.h do
+      for c = 1, board.w do
+        local ty = math.floor(board.grid[r][c] / Board.PATH)
+        if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
+          -- Draw sheepfold
+          local index = (ty - Board.TYPE_SHEEPFOLD + 1)
+          sprites.draw('fence_' .. index,
+            xStart + (c - 2) * CELL_SIZE,
+            yStart + (r - 1) * CELL_SIZE,
+            (bit.band(board.grid[r][c], 4) ~= 0 and 0 or math.pi / 2),
+            CELL_SIZE * 3, CELL_SIZE
+          )
+        end
+      end
+    end
     -- Dogs on the grid
     for r = 1, board.h do
       for c = 1, board.w do
@@ -744,6 +765,10 @@ sceneGameplay = function (levelIndex)
             0, CELL_SIZE * 1.1, CELL_SIZE * 1.1)
         end
       end
+    end
+    -- Sheep not in the sheepfolds
+    for i, sh in ipairs(board.sheep) do
+      if not sh.sheepfold then drawSheep(i, sh) end
     end
 
     -- Put/remove animations
@@ -810,32 +835,6 @@ sceneGameplay = function (levelIndex)
         yStart + (pinpointRow - 1) * CELL_SIZE,
         selectedItem <= 4 and pathCellRotation(selectedValue) or 0,
         CELL_SIZE, CELL_SIZE)
-    end
-
-    -- Sheep in the sheepfolds
-    for i, sh in ipairs(board.sheep) do
-      if sh.sheepfold then drawSheep(i, sh) end
-    end
-    -- Sheepfolds
-    love.graphics.setColor(1, 1, 1)
-    for r = 1, board.h do
-      for c = 1, board.w do
-        local ty = math.floor(board.grid[r][c] / Board.PATH)
-        if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
-          -- Draw sheepfold
-          local index = (ty - Board.TYPE_SHEEPFOLD + 1)
-          sprites.draw('fence_' .. index,
-            xStart + (c - 2) * CELL_SIZE,
-            yStart + (r - 1) * CELL_SIZE,
-            (bit.band(board.grid[r][c], 4) ~= 0 and 0 or math.pi / 2),
-            CELL_SIZE * 3, CELL_SIZE
-          )
-        end
-      end
-    end
-    -- Sheep not in the sheepfolds
-    for i, sh in ipairs(board.sheep) do
-      if not sh.sheepfold then drawSheep(i, sh) end
     end
 
     -- Storehouse buttons
