@@ -49,7 +49,6 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  levelIndex = 7
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -627,7 +626,7 @@ sceneGameplay = function (levelIndex)
     else
       gameFinishTimer = gameFinishTimer + 1
       if gameFinishTimer == 480 then
-        _G['replaceScene'](sceneGameplay(levelIndex + 1))
+        _G['replaceScene'](sceneGameplay(levelIndex + 1), 'sheepPull')
       end
     end
   end

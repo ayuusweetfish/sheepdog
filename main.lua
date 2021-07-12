@@ -4,6 +4,8 @@ H = 720
 local sceneStartup = require 'scene_startup'
 local sceneGameplay = require 'scene_gameplay'
 
+local sprites = require 'sprites'
+
 _G['font_Mali'] = love.graphics.newFont('res/Mali-Regular.ttf', 24)
 _G['font_TSZY'] = love.graphics.newFont('res/AaTianShiZhuYi-2.ttf', 24)
 love.graphics.setFont(_G['font_TSZY'])
@@ -16,15 +18,14 @@ end
 local curScene = sceneStartup()
 local lastScene = nil
 local transitionTimer = 0
-local transitionName
+local currentTransition = nil
+local transitions = {}
 
-local TRANSITION_HALF_DUR = 80
-
-_G['replaceScene'] = function (newScene, transition)
+_G['replaceScene'] = function (newScene, transitionName)
   lastScene = curScene
   curScene = newScene
   transitionTimer = 0
-  transitionName = transition or 'fadeBlack'
+  currentTransition = transitions[transitionName or 'fadeBlack']
 end
 
 function love.mousepressed(x, y, button, istouch, presses)
@@ -59,21 +60,71 @@ function love.update(dt)
   end
 end
 
-local transitionDrawFn = {
-  ['fadeBlack'] = function (x)
+transitions['fadeBlack'] = {
+  dur = 160,
+  draw = function (x)
     local opacity = 0
-    if x < 1 then
+    if x < 0.5 then
       lastScene:draw()
-      opacity = x
+      opacity = x * 2
     else
       curScene:draw()
-      opacity = 2 - x
+      opacity = 2 - x * 2
     end
     love.graphics.setColor(0.1, 0.1, 0.1, opacity)
     love.graphics.rectangle('fill', 0, 0, W, H)
-  end,
-  ['sheepPull'] = function (x)
-  end,
+  end
+}
+
+local levelClearText = love.graphics.newText(
+  love.graphics.newFont('res/AaTianShiZhuYi-2.ttf', 120),
+  '好耶'
+)
+transitions['sheepPull'] = {
+  dur = 1200,
+  draw = function (x)
+    local sheepProgress = 0
+    if x < 0.5 then
+      lastScene:draw()
+      love.graphics.setColor(0.99, 1, 0.99, math.min(x * 20, 1))
+      love.graphics.rectangle('fill', 0, 0, W, H)
+      if x >= 0.15 then
+        local y = (x - 0.15) / 0.35
+        sheepProgress = (1 - (1 - y) * math.exp(-0.3 * y)) * 0.2
+      end
+      if x >= 0.1 then
+        local opacity = math.min((x - 0.1) * 20, 1)
+        if x >= 0.45 then opacity = 1 - (x - 0.45) * 20 end
+        love.graphics.setColor(0.3, 0.3, 0.3, opacity)
+        love.graphics.draw(levelClearText,
+          (W - levelClearText:getWidth()) / 2,
+          (H - levelClearText:getHeight() * 1.6) / 2)
+      end
+    else
+      curScene:draw()
+      local y = (x - 0.5) / 0.5
+      y = 1 - (1 - y) * math.exp(-3 * y)
+      y = math.pow(y, 1.5) * 1.02
+      love.graphics.setColor(0.99, 1, 0.99, 1)
+      love.graphics.rectangle('fill', W * y, 0, W * (1 - y), H)
+      sheepProgress = 0.2 + y * 0.8
+    end
+
+    local sheepW = 360
+    local sheepH = sheepW * 0.5
+    local sheepXCen = -sheepW / 2 + (W + sheepW) * sheepProgress
+
+    -- Animate the sheep
+    local period = (sheepProgress < 0.2 and 0.05 or 0.25)
+    local phase = math.fmod(sheepProgress, period) / period
+    sheepW = sheepW * (1 - 0.005 * math.cos(phase * math.pi * 2))
+    sheepH = sheepH * (1 + 0.008 * math.cos(phase * math.pi * 2))
+
+    love.graphics.setColor(1, 1, 1)
+    sprites.draw(
+      (phase < 0.25 or phase >= 0.75) and 'sheep_running_1' or 'sheep_running_2',
+      sheepXCen + sheepW / 2, H * 0.7, -sheepW, sheepH)
+  end
 }
 
 function love.draw()
@@ -81,9 +132,9 @@ function love.draw()
   love.graphics.rectangle('fill', 0, 0, W, H)
   love.graphics.setColor(1, 1, 1)
   if lastScene ~= nil then
-    local x = transitionTimer / TRANSITION_HALF_DUR
-    transitionDrawFn[transitionName](x)
-    if x >= 2 then
+    local x = transitionTimer / currentTransition.dur
+    currentTransition.draw(x)
+    if x >= 1 then
       if lastScene.destroy then lastScene.destroy() end
       lastScene = nil
     end
