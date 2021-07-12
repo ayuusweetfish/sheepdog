@@ -116,9 +116,9 @@ return {
     ">─┴──┘ ",
     tutorial = {
       {-1, 'btn_storehouse 6'},
-      {0.22, 0.2, '喜乐蒂牧羊犬更加活跃，可以在途中移动', 'storehouse_click 6'},
+      {0.22, 0.2, '喜乐蒂牧羊犬可以在\n小羊前进的过程中移动', 'storehouse_click 6'},
       {-1, 'cell 2 3', nil, 'put 2 3'},
-      {-1, 'btn_storehouse 5'},
+      {-1, 'btn_storehouse 5', nil, 'storehouse_click 5'},
       {-1, 'cell 4 3', nil, 'put 4 3'},
       {-1, 'btn_run', nil, 'run'},
       {0, 0, '', 'delay 1200'},
@@ -127,7 +127,7 @@ return {
       {0, 0, '', 'delay 900'},
       {-1, 'cell 2 3'},
       {-1, 'cell 2 6'},
-      {0.65, 0.61, '将喜乐蒂牧羊犬拖到此处', 'put 2 6', {blocksBoard = true}},
+      {0.65, 0.67, '将喜乐蒂牧羊犬拖动到此处', 'put 2 6', {blocksBoard = true}},
     },
   },
   [7] = {
@@ -141,13 +141,16 @@ return {
   },
   [8] = {
     {10, 10, 10, 10, 10, 10},
-    {4},
+    {4, 2, 4, 2, 4, 2, 4},
     "        ",
     "        ",
     ">       ",
     "        ",
+    "     o  ",
     "        ",
-    "        ",
+    tutorial = {
+      {0.3, 0.5, '恭喜通关啦！', 'delay 800'},
+    },
   },
   [91] = {
     {0, 0, 0, 0, 0, 0},
