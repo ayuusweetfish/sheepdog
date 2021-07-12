@@ -7,13 +7,26 @@ local tutorial = require 'tutorial'
 
 local sprites = require 'sprites'
 
-local BORDER_PAD_X = 48
-local BORDER_PAD_Y = 24
+local BORDER_PAD_X = 30
+local BORDER_PAD_Y = 30
 local ITEM_SIZE = 64
-local ITEM_SPACE = 36
+local ITEM_SPACE_X = 32
+local ITEM_SPACE_Y = 32
 local BUTTON_SPACE = 24
 local ITEM_SURROUND_SPACE = 10
-local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
+local STORE_COLUMNS = 2
+local STORE_WIDTH = BORDER_PAD_X * 2 +
+  ITEM_SIZE * STORE_COLUMNS + ITEM_SPACE_X * (STORE_COLUMNS - 1)
+
+local NUM_ITEMS = 6
+local ITEM_BUTTON_POS = {
+  {1, 1}, {1, 2}, {1, 3}, {1, 4},
+  {2, 1}, {2, 2}
+}
+local ITEM_SPRITE = {
+  'path_1', 'path_2', 'path_3', 'path_4',
+  'dog', 'ice-cream_1f368'
+}
 
 local TOP_HEIGHT = 84
 
@@ -22,14 +35,19 @@ local DOG_OFFSET_Y = -0.7
 local DOG_SIZE = 1.1
 local DOG_SELECT_PAD = 0.1
 
+local function storehouseButtonCoords(i)
+  local x = BORDER_PAD_X + (ITEM_SIZE + ITEM_SPACE_X) * (ITEM_BUTTON_POS[i][1] - 1)
+  local y = BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE_Y) * (ITEM_BUTTON_POS[i][2] - 1)
+  return x, y
+end
+
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  levelIndex = 4--levelIndex or 4
+  levelIndex = 6--levelIndex or 4
 
   local board = Board.create(levelIndex)
   local itemCount = {}
-  local NUM_ITEMS = 5
 
   local cellSizeVert = H * 0.875 * (1 - math.exp(-0.4 * (board.h - 0.6))) / board.h
   local cellSizeHorz = (W - STORE_WIDTH) * 0.95 * (1 - math.exp(-0.4 * (board.w - 0.6))) / board.w
@@ -114,16 +132,11 @@ sceneGameplay = function (levelIndex)
   local ANIM_TYPE_QUESTION_FADE = 4
 
   local btnsStorehouse = buttons()
-  local itemSprites = {
-    'path_1', 'path_2', 'path_3', 'path_4', 'dog'
-  }
   for i = 1, NUM_ITEMS do
-    local sprite = love.graphics.newImage('res/' .. itemSprites[i] .. '.png')
-    sprite:setFilter('nearest', 'nearest')
+    local sprite = love.graphics.newImage('res/' .. ITEM_SPRITE[i] .. '.png')
+    local x, y = storehouseButtonCoords(i)
     btnsStorehouse.add(
-      BORDER_PAD_X,
-      BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
-      ITEM_SIZE, ITEM_SIZE,
+      x, y, ITEM_SIZE, ITEM_SIZE,
       sprite,
       function ()
         if selectedItem == i then
@@ -144,7 +157,7 @@ sceneGameplay = function (levelIndex)
     )
     tutAreas['btn_storehouse ' .. i] = {
       BORDER_PAD_X,
-      BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1),
+      BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE_Y) * (i - 1),
       ITEM_SIZE, ITEM_SIZE
     }
   end
@@ -879,13 +892,13 @@ sceneGameplay = function (levelIndex)
       -- Item image
       love.graphics.setColor(1, 1, 1, alpha)
       if isItemDog(selectedItem) then
-        sprites.draw(itemSprites[selectedItem],
+        sprites.draw(ITEM_SPRITE[selectedItem],
           xStart + (pinpointCol - 1) * CELL_SIZE + DOG_OFFSET_X * CELL_SIZE,
           yStart + (pinpointRow - 1) * CELL_SIZE + DOG_OFFSET_Y * CELL_SIZE,
           0,
           CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
       else
-        sprites.draw(itemSprites[selectedItem],
+        sprites.draw(ITEM_SPRITE[selectedItem],
           xStart + (pinpointCol - 1) * CELL_SIZE,
           yStart + (pinpointRow - 1) * CELL_SIZE,
           pathCellRotation(selectedValue),
@@ -899,15 +912,16 @@ sceneGameplay = function (levelIndex)
     -- love.graphics.setColor(0.9, 0.9, 0.9, 0.8)
     love.graphics.rectangle('fill', 0, 0, STORE_WIDTH, H)
     -- Then, indicator
-    for i = 1, 5 do
+    for i = 1, NUM_ITEMS do
+      local x, y = storehouseButtonCoords(i)
       if selectedItem == i and not selectedDrag then
         love.graphics.setColor(0.6, 1, 0.7)
       else
         love.graphics.setColor(0.9, 0.9, 0.9)
       end
       love.graphics.rectangle('fill',
-        BORDER_PAD_X - ITEM_SURROUND_SPACE,
-        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - ITEM_SURROUND_SPACE,
+        x - ITEM_SURROUND_SPACE,
+        y - ITEM_SURROUND_SPACE,
         ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
         ITEM_SIZE + ITEM_SURROUND_SPACE * 2)
     end
@@ -915,18 +929,17 @@ sceneGameplay = function (levelIndex)
     -- Buttons themselves
     btnsStorehouse.draw()
 
-    -- Text
     for i = 1, NUM_ITEMS do
+      local x, y = storehouseButtonCoords(i)
+      -- Text for count
       local text = textCount[itemCount[i]]
       if text == nil then
         text = love.graphics.newText(_G['font_Mali'], tostring(itemCount[i]))
         textCount[itemCount[i]] = text
       end
       local textSize = 24
-      local xText = BORDER_PAD_X
-        + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
-      local yText = BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1)
-        + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
+      local xText = x + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
+      local yText = y + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
       love.graphics.setColor(0.2, 0.2, 0.2, 0.75)
       love.graphics.rectangle('fill', xText, yText, textSize, textSize)
       local textScale = 0.75
@@ -935,15 +948,13 @@ sceneGameplay = function (levelIndex)
         xText + (textSize - text:getWidth() * textScale) / 2, yText - 2,
         0, textScale, textScale
       )
-    end
 
-    -- Frames around buttons
-    for i = 1, NUM_ITEMS do
+      -- Frames around buttons
       love.graphics.setColor(0.5, 0.3, 0.1)
       love.graphics.setLineWidth(3)
       love.graphics.rectangle('line',
-        BORDER_PAD_X - ITEM_SURROUND_SPACE,
-        BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE) * (i - 1) - ITEM_SURROUND_SPACE,
+        x - ITEM_SURROUND_SPACE,
+        y - ITEM_SURROUND_SPACE,
         ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
         ITEM_SIZE + ITEM_SURROUND_SPACE * 2)
     end
