@@ -1,4 +1,6 @@
 local sprites = require 'sprites'
+require 'utils'
+local drawCoarseRect = drawCoarseRect
 
 -- script: list of items to be displayed
 --   {{x, y, object, action, flags}, ...}
@@ -130,8 +132,7 @@ return function (script, areas)
         else
           love.graphics.setColor(0.4, 0.7, 1.0, progress)
         end
-        love.graphics.setLineWidth(3)
-        love.graphics.rectangle('line', x, y, w, h)
+        drawCoarseRect(x, y, w, h)
       elseif script[i][3] ~= '' then
         local s = script[i][3]
         local pad = 48

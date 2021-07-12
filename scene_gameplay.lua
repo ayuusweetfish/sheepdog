@@ -1,6 +1,7 @@
 require 'utils'
 local popcount4, ctz4, cellDog, cloneGrid, dogMobility = popcount4, ctz4, cellDog, cloneGrid, dogMobility
 local drawBackground = drawBackground
+local drawCoarseRect = drawCoarseRect
 
 local Board = require 'board'
 local buttons = require 'buttons'
@@ -733,11 +734,12 @@ sceneGameplay = function (levelIndex)
     drawBackground()
     -- Border
     local pad = CELL_SIZE * 0.1
-    love.graphics.setColor(0.1, 0.3, 0.1, 0.6)
-    love.graphics.setLineWidth(3)
-    love.graphics.rectangle('line',
-      xStart - pad, yStart - pad, CELL_SIZE * board.w + pad * 2, CELL_SIZE * board.h + pad * 2)
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(0.4, 0.6, 0.4)
+    love.graphics.setColor(0.95, 1, 0.95)
+    drawCoarseRect(
+      xStart - pad, yStart - pad,
+      CELL_SIZE * board.w + pad * 2,
+      CELL_SIZE * board.h + pad * 2)
     -- Grid
     for r = 1, board.h do
       for c = 1, board.w do
@@ -994,18 +996,18 @@ sceneGameplay = function (levelIndex)
       )
 
       -- Frames around buttons
+      local w = 6
       if selectedItem == i and not selectedDrag then
         love.graphics.setColor(0.75, 0.9, 0.6)
-        love.graphics.setLineWidth(5)
+        w = 8
       else
         love.graphics.setColor(0.4, 0.28, 0.1)
-        love.graphics.setLineWidth(3)
       end
-      love.graphics.rectangle('line',
+      drawCoarseRect(
         x - ITEM_SURROUND_SPACE,
         y - ITEM_SURROUND_SPACE,
         ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
-        ITEM_SIZE + ITEM_SURROUND_SPACE * 2)
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2, w)
     end
 
     -- Progress indicator
