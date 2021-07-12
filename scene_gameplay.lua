@@ -1047,7 +1047,7 @@ sceneGameplay = function (levelIndex)
       xInd, yInd - hInd / 2 * 1.4,
       hInd * 0.835 * 1.2, hInd * 1.2)
 
-    tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, sheepTotal * scaleInd, hInd}
+    tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, (sheepTotal + 0.5) * scaleInd, hInd}
 
     -- Tutorial, if any
     tut.draw()

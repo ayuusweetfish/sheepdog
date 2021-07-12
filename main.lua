@@ -17,7 +17,6 @@ function love.load()
   love.window.setMode(W, H, { highdpi = true })
 end
 
--- local curScene = sceneGameplay()
 local curScene = sceneStartup()
 local lastScene = nil
 local transitionTimer = 0
@@ -52,13 +51,14 @@ function love.update(dt)
   while T > timeStep do
     T = T - timeStep
     count = count + 1
-    curScene:update()
     if lastScene ~= nil then
       lastScene:update()
       -- At most 4 ticks per update for transitions
       if count <= 4 then
         transitionTimer = transitionTimer + 1
       end
+    else
+      curScene:update()
     end
   end
 end
