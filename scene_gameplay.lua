@@ -50,7 +50,6 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  levelIndex = 1
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -583,7 +582,7 @@ sceneGameplay = function (levelIndex)
             ANIM_TYPE_DELIGHT, 0,
             (bit.band(board.grid[sh.to[1]][sh.to[2]], 4) ~= 0),
             0, math.random() < 0.5 and -1e-6 or 1e-6,
-            1.05 + (math.random() - 0.5) * 0.2
+            0.8 + (math.random() - 0.5) * 0.2
           }
         elseif sh.wrongSheepfold and curAnim ~= ANIM_TYPE_EXCLAMATION then
           sheepAnim[sh] = {ANIM_TYPE_EXCLAMATION, 0}
@@ -717,6 +716,8 @@ sceneGameplay = function (levelIndex)
     local h = 1 - rate * 0.02
     w = CELL_SIZE * (spriteDir % 2 == 0 and 0.95 or 1.125) * w
     h = CELL_SIZE * 0.9 * h
+    w = w * 0.9
+    h = h * 0.9
     sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[spriteDir],
       xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, w, h)
     -- Draw the icon if there is one
