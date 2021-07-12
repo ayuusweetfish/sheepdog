@@ -733,7 +733,7 @@ sceneGameplay = function (levelIndex)
     -- Background
     drawBackground()
     -- Border
-    local pad = CELL_SIZE * 0.1
+    local pad = CELL_SIZE * 0.2
     love.graphics.setColor(0.4, 0.6, 0.4)
     love.graphics.setColor(0.95, 1, 0.95)
     drawCoarseRect(
@@ -1018,9 +1018,9 @@ sceneGameplay = function (levelIndex)
     local prog = math.min(boardRunProgress / Board.CELL_SUBDIV, sheepTotal)
 
     local xInd = STORE_WIDTH + 32
-    local yInd = 48
+    local yInd = 50
     local scaleInd = (W - xInd - 64) / math.max(15, sheepTotal)
-    local hInd = 40
+    local hInd = 48
     local pfxSum = 0
     for _, flock in ipairs(board.sheepFlocks) do
       local newSum = pfxSum + flock[2]
