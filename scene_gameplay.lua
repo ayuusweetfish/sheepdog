@@ -49,7 +49,6 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  levelIndex = 92
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -820,11 +819,8 @@ sceneGameplay = function (levelIndex)
       sprites.draw('path_1',
         xEntry - i * CELL_SIZE, yEntry, CELL_SIZE, CELL_SIZE, 0, math.pi / 2)
     end
-    -- Sheep in the sheepfolds
-    for i, sh in ipairs(board.sheep) do
-      if sh.sheepfold then drawSheep(i, sh) end
-    end
-    -- Sheepfolds
+    -- Sheepfolds (1)
+    -- TODO: Use layers when that is implementated
     love.graphics.setColor(1, 1, 1)
     for r = 1, board.h do
       for c = 1, board.w do
@@ -833,17 +829,34 @@ sceneGameplay = function (levelIndex)
           -- Draw sheepfold
           local index = (ty - Board.TYPE_SHEEPFOLD + 1)
           if bit.band(board.grid[r][c], 4) ~= 0 then
-            sprites.draw('fence_' .. index .. '_front',
-              xStart + (c - 2) * CELL_SIZE,
-              yStart + (r - 1) * CELL_SIZE,
-              CELL_SIZE * 3, CELL_SIZE
-            )
           else
             sprites.draw('fence_' .. index .. '_side_upper',
               xStart + (c - 1.4) * CELL_SIZE,
               yStart + (r - 2) * CELL_SIZE,
               CELL_SIZE * 0.9375, CELL_SIZE * 1.538
             )
+          end
+        end
+      end
+    end
+    -- Sheep in the sheepfolds
+    for i, sh in ipairs(board.sheep) do
+      if sh.sheepfold then drawSheep(i, sh) end
+    end
+    -- Sheepfolds (2)
+    love.graphics.setColor(1, 1, 1)
+    for r = 1, board.h do
+      for c = 1, board.w do
+        local ty = math.floor(board.grid[r][c] / Board.PATH)
+        if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
+          local index = (ty - Board.TYPE_SHEEPFOLD + 1)
+          if bit.band(board.grid[r][c], 4) ~= 0 then
+            sprites.draw('fence_' .. index .. '_front',
+              xStart + (c - 2) * CELL_SIZE,
+              yStart + (r - 1) * CELL_SIZE,
+              CELL_SIZE * 3, CELL_SIZE
+            )
+          else
             sprites.draw('fence_' .. index .. '_side_lower',
               xStart + (c - 1.4) * CELL_SIZE,
               yStart + (r - (2 - 1.538)) * CELL_SIZE,
