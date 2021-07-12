@@ -17,6 +17,11 @@ local STORE_WIDTH = ITEM_SIZE + BORDER_PAD_X * 2
 
 local TOP_HEIGHT = 84
 
+local DOG_OFFSET_X = 0.5
+local DOG_OFFSET_Y = -0.7
+local DOG_SIZE = 1.1
+local DOG_SELECT_PAD = 0.1
+
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
@@ -41,6 +46,9 @@ sceneGameplay = function (levelIndex)
     feasible[r] = {}
     for c = 1, board.w do feasible[r][c] = false end
   end
+
+  local function isItemPath(i) return i >= 1 and i <= 4 end
+  local function isItemDog(i) return i >= 5 and i <= 6 end
 
   local function editable(r, c)
     return
@@ -248,12 +256,33 @@ sceneGameplay = function (levelIndex)
     return math.floor((y - yStart) / CELL_SIZE) + 1,
            math.floor((x - xStart) / CELL_SIZE) + 1
   end
+  local function dogCellPos(x, y)
+    x = (x - CELL_SIZE * DOG_OFFSET_X - xStart) / CELL_SIZE + 1
+    y = (y - CELL_SIZE * DOG_OFFSET_Y - yStart) / CELL_SIZE + 1
+    return math.floor(y), math.floor(x)
+  end
+  local function dogCellPosChecked(x, y)
+    x = (x - CELL_SIZE * DOG_OFFSET_X - xStart) / CELL_SIZE + 1
+    y = (y - CELL_SIZE * DOG_OFFSET_Y - yStart) / CELL_SIZE + 1
+    local xInt = math.floor(x)
+    local yInt = math.floor(y)
+    if x - xInt < DOG_SIZE and y - yInt < DOG_SIZE and
+        xInt >= 1 and xInt <= board.w and
+        yInt >= 1 and yInt <= board.h and
+        cellDog(board.grid[yInt][xInt]) ~= 0
+    then
+      return yInt, xInt
+    else
+      return nil, nil
+    end
+  end
 
   local pinpointingItem = false
   local pinpointRow, pinpointCol = -1, -1
 
   local holdTime = -1
   local holdRow, holdCol = -1, -1
+  local holdDog = false
 
   local dragToStorehouse = false
 
@@ -261,15 +290,25 @@ sceneGameplay = function (levelIndex)
     if tut.blocksInteractions(x, y) then return end
     if btnsStorehouse.press(x, y) then return end
     if x >= STORE_WIDTH then
-      local r, c = cellPos(x, y)
-      if selectedItem ~= -1 then
-        pinpointingItem = true
-      elseif (editable(r, c) and board.grid[r][c] ~= Board.EMPTY)
-          or (r >= 1 and r <= board.h and c >= 1 and c <= board.w and
-              cellDog(board.grid[r][c]) ~= 0)
-      then
+      -- Check dog first
+      local rDog, cDog = dogCellPosChecked(x, y)
+      if rDog ~= nil then
         holdTime = 0
-        holdRow, holdCol = r, c
+        holdRow, holdCol = rDog, cDog
+        holdDog = true
+      else
+        -- Then ordinary cells (dogs or paths)
+        local r, c = cellPos(x, y)
+        if selectedItem ~= -1 then
+          pinpointingItem = true
+        elseif (editable(r, c) and board.grid[r][c] ~= Board.EMPTY)
+            or (r >= 1 and r <= board.h and c >= 1 and c <= board.w and
+                cellDog(board.grid[r][c]) ~= 0)
+        then
+          holdTime = 0
+          holdRow, holdCol = r, c
+          holdDog = (cellDog(board.grid[r][c]) ~= 0)
+        end
       end
     end
     s.move(x, y)
@@ -344,9 +383,12 @@ sceneGameplay = function (levelIndex)
         selectedDrag = true
         pinpointingItem = true
         holdRow, holdCol = -1, -1
+        -- Treat as holding a dog, if dragging a dog outside
+        if isItemDog(selectedItem) then holdDog = true end
       end
     end
     local r, c = cellPos(x, y)
+    if holdDog then r, c = dogCellPos(x, y) end
     if pinpointingItem then
       pinpointRow, pinpointCol = r, c
       dragToStorehouse = (x < STORE_WIDTH or
@@ -364,6 +406,7 @@ sceneGameplay = function (levelIndex)
     if pinpointingItem then
       pinpointingItem = false
       pinpointRow, pinpointCol = cellPos(x, y)
+      if holdDog then pinpointRow, pinpointCol = dogCellPos(x, y) end
       dragToStorehouse = (x < STORE_WIDTH or
         pinpointRow < -1 or pinpointRow > board.h + 2 or
         pinpointCol < -1 or pinpointCol > board.w + 2)
@@ -446,6 +489,7 @@ sceneGameplay = function (levelIndex)
       end
       board.grid[holdRow][holdCol] = cell
     end
+    holdDog = false
   end
 
   -- Time after the finishing criterion has been met
@@ -760,9 +804,9 @@ sceneGameplay = function (levelIndex)
       for c = 1, board.w do
         if cellDog(board.grid[r][c]) ~= 0 then
           sprites.draw('dog',
-            xStart + (c - 1) * CELL_SIZE + CELL_SIZE * 0.5,
-            yStart + (r - 1) * CELL_SIZE - CELL_SIZE * 0.7,
-            0, CELL_SIZE * 1.1, CELL_SIZE * 1.1)
+            xStart + (c - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_X,
+            yStart + (r - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_Y,
+            0, CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
         end
       end
     end
@@ -830,11 +874,19 @@ sceneGameplay = function (levelIndex)
       )
       -- Item image
       love.graphics.setColor(1, 1, 1, alpha)
-      sprites.draw(itemSprites[selectedItem],
-        xStart + (pinpointCol - 1) * CELL_SIZE,
-        yStart + (pinpointRow - 1) * CELL_SIZE,
-        selectedItem <= 4 and pathCellRotation(selectedValue) or 0,
-        CELL_SIZE, CELL_SIZE)
+      if selectedItem == 5 then
+        sprites.draw(itemSprites[selectedItem],
+          xStart + (pinpointCol - 1) * CELL_SIZE + DOG_OFFSET_X * CELL_SIZE,
+          yStart + (pinpointRow - 1) * CELL_SIZE + DOG_OFFSET_Y * CELL_SIZE,
+          0,
+          CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
+      else
+        sprites.draw(itemSprites[selectedItem],
+          xStart + (pinpointCol - 1) * CELL_SIZE,
+          yStart + (pinpointRow - 1) * CELL_SIZE,
+          pathCellRotation(selectedValue),
+          CELL_SIZE, CELL_SIZE)
+      end
     end
 
     -- Storehouse buttons
