@@ -146,7 +146,7 @@ return function (script, areas)
         sprites.draw(w / h > 5 / 3 and 'bubble_1' or 'bubble_2',
           W * script[i][1] - pad, H * script[i][2] - pad,
           w, h)
-        love.graphics.setColor(0, 0, 0, progress)
+        love.graphics.setColor(0.3, 0.3, 0.3, progress)
         love.graphics.print(s, W * script[i][1], H * script[i][2])
       end
     end

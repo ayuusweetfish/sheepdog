@@ -20,6 +20,7 @@ local STORE_WIDTH = STORE_BORDER_PAD_X * 2 +
   ITEM_SIZE * STORE_COLUMNS + ITEM_SPACE_X * (STORE_COLUMNS - 1)
 
 local BUTTON_SIZE = 80
+local BUTTON_OFF = 15
 
 local NUM_ITEMS = 6
 local ITEM_BUTTON_POS = {
@@ -219,21 +220,21 @@ sceneGameplay = function (levelIndex)
   end
   runButton = btnsStorehouse.add(
     STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2,
-    H - STORE_BORDER_PAD_Y - BUTTON_SIZE,
+    H - STORE_BORDER_PAD_Y - BUTTON_SIZE - BUTTON_OFF,
     BUTTON_SIZE, BUTTON_SIZE,
     'res/button_run.png',
     runButtonHandler
   )
   tutAreas['btn_run'] = {
     STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2,
-    H - STORE_BORDER_PAD_Y - BUTTON_SIZE,
+    H - STORE_BORDER_PAD_Y - BUTTON_SIZE - BUTTON_OFF,
     BUTTON_SIZE, BUTTON_SIZE,
   }
 
   -- Reset button
   resetButton = btnsStorehouse.add(
     STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2 + (ITEM_SIZE + ITEM_SPACE_X),
-    H - STORE_BORDER_PAD_Y - BUTTON_SIZE,
+    H - STORE_BORDER_PAD_Y - BUTTON_SIZE - BUTTON_OFF,
     BUTTON_SIZE, BUTTON_SIZE,
     'res/button_reset.png',
     function ()
@@ -277,7 +278,7 @@ sceneGameplay = function (levelIndex)
   )
   tutAreas['btn_stop'] = {
     STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2 + (ITEM_SIZE + ITEM_SPACE_X),
-    H - STORE_BORDER_PAD_Y - BUTTON_SIZE,
+    H - STORE_BORDER_PAD_Y - BUTTON_SIZE - BUTTON_OFF,
     BUTTON_SIZE, BUTTON_SIZE
   }
 
@@ -954,14 +955,16 @@ sceneGameplay = function (levelIndex)
     -- Storehouse buttons
     -- First, background
     love.graphics.setColor(0.45, 0.25, 0.1, 0.75)
-    love.graphics.rectangle('fill', 0, 0, STORE_WIDTH, H)
+    love.graphics.rectangle('fill', 0, 0, STORE_WIDTH, H * 0.77)
+    love.graphics.setColor(157 / 255, 102 / 255, 55 / 255, 0.75)
+    love.graphics.rectangle('fill', 0, H * 0.77, STORE_WIDTH, H * 0.23)
     -- Then, indicator
     for i = 1, NUM_ITEMS do
       local x, y = storehouseButtonCoords(i)
       if selectedItem == i and not selectedDrag then
         love.graphics.setColor(1.0, 0.97, 0.94)
       elseif itemCount[i] == 0 then
-        love.graphics.setColor(0.72, 0.72, 0.72)
+        love.graphics.setColor(0.88, 0.88, 0.85)
       else
         love.graphics.setColor(1.0, 0.97, 0.94)
       end
@@ -998,7 +1001,7 @@ sceneGameplay = function (levelIndex)
       -- Frames around buttons
       local w = 6
       if selectedItem == i and not selectedDrag then
-        love.graphics.setColor(0.75, 0.9, 0.6)
+        love.graphics.setColor(0.8, 0.9, 0.6)
         w = 8
       else
         love.graphics.setColor(0.4, 0.28, 0.1)
