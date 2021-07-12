@@ -197,7 +197,9 @@ sceneGameplay = function (levelIndex)
       board.reset()
       -- Restore board state
       cloneGrid(board.grid, savedGrid)
-      cloneGrid(rotationCount, savedRotationCount)
+      if savedRotationCount[1] ~= nil then
+        cloneGrid(rotationCount, savedRotationCount)
+      end
       if savedItemCount[1] ~= nil then
         for i = 1, NUM_ITEMS do
           itemCount[i] = savedItemCount[i]
