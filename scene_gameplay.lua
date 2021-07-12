@@ -26,7 +26,7 @@ local ITEM_BUTTON_POS = {
 }
 local ITEM_SPRITE = {
   'path_1', 'path_2', 'path_3', 'path_4',
-  'dog', 'ice-cream_1f368'
+  'dog_1', 'dog_2'
 }
 
 local function isItemPath(i) return i >= 1 and i <= 4 end
@@ -49,7 +49,6 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  -- levelIndex = 5
 
   local board = Board.create(levelIndex)
   local itemCount = {}
