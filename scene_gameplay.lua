@@ -7,16 +7,17 @@ local tutorial = require 'tutorial'
 
 local sprites = require 'sprites'
 
-local BORDER_PAD_X = 30
-local BORDER_PAD_Y = 30
+local STORE_COLUMNS = 2
+local STORE_BORDER_PAD_X = 30
+local STORE_BORDER_PAD_Y = 30
 local ITEM_SIZE = 64
 local ITEM_SPACE_X = 32
 local ITEM_SPACE_Y = 32
-local BUTTON_SPACE = 24
 local ITEM_SURROUND_SPACE = 10
-local STORE_COLUMNS = 2
-local STORE_WIDTH = BORDER_PAD_X * 2 +
+local STORE_WIDTH = STORE_BORDER_PAD_X * 2 +
   ITEM_SIZE * STORE_COLUMNS + ITEM_SPACE_X * (STORE_COLUMNS - 1)
+
+local BUTTON_SIZE = 80
 
 local NUM_ITEMS = 6
 local ITEM_BUTTON_POS = {
@@ -40,8 +41,8 @@ local DOG_SIZE = 1.1
 local DOG_SELECT_PAD = 0.1
 
 local function storehouseButtonCoords(i)
-  local x = BORDER_PAD_X + (ITEM_SIZE + ITEM_SPACE_X) * (ITEM_BUTTON_POS[i][1] - 1)
-  local y = BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE_Y) * (ITEM_BUTTON_POS[i][2] - 1)
+  local x = STORE_BORDER_PAD_X + (ITEM_SIZE + ITEM_SPACE_X) * (ITEM_BUTTON_POS[i][1] - 1)
+  local y = STORE_BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE_Y) * (ITEM_BUTTON_POS[i][2] - 1)
   return x, y
 end
 
@@ -157,8 +158,8 @@ sceneGameplay = function (levelIndex)
       end
     )
     tutAreas['btn_storehouse ' .. i] = {
-      BORDER_PAD_X,
-      BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE_Y) * (i - 1),
+      STORE_BORDER_PAD_X,
+      STORE_BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE_Y) * (i - 1),
       ITEM_SIZE, ITEM_SIZE
     }
   end
@@ -185,30 +186,65 @@ sceneGameplay = function (levelIndex)
   local savedRotationCount = {}
   local function updateButtonIcons()
     if boardRunning then
-      btnsStorehouse.sprite(runButton, 'res/button_stop.png')
       if boardDoubleSpeed then
-        btnsStorehouse.sprite(resetButton, 'res/button_run.png')
+        btnsStorehouse.sprite(runButton, 'res/button_run.png')
       else
-        btnsStorehouse.sprite(resetButton, 'res/button_ff.png')
+        btnsStorehouse.sprite(runButton, 'res/button_ff.png')
       end
+      btnsStorehouse.sprite(resetButton, 'res/button_stop.png')
     else
       btnsStorehouse.sprite(runButton, 'res/button_run.png')
       btnsStorehouse.sprite(resetButton, 'res/button_reset.png')
     end
   end
   local function runButtonHandler()
-    boardRunning = not boardRunning
-    selectedItem = -1
-    boardRunProgress = 0
     if boardRunning then
+      -- Double speed
+      boardDoubleSpeed = not boardDoubleSpeed
+    else
+      boardRunning = true
+      selectedItem = -1
+      boardRunProgress = 0
+      -- Start running
       boardDoubleSpeed = false
       -- Save board state
       cloneGrid(savedGrid, board.grid)
       cloneGrid(savedRotationCount, rotationCount)
       for i = 1, NUM_ITEMS do savedItemCount[i] = itemCount[i] end
       tut.emit('run')
-    else
+      -- Update item buttons
+      for i = 1, NUM_ITEMS do
+        btnsStorehouse.enable(i,
+          itemCount[i] > 0 and not (isItemPath(i) and boardRunning))
+      end
+    end
+    updateButtonIcons()
+  end
+  runButton = btnsStorehouse.add(
+    STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2,
+    H - STORE_BORDER_PAD_Y - BUTTON_SIZE,
+    BUTTON_SIZE, BUTTON_SIZE,
+    'res/button_run.png',
+    runButtonHandler
+  )
+  tutAreas['btn_run'] = {
+    STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2,
+    H - STORE_BORDER_PAD_Y - BUTTON_SIZE,
+    BUTTON_SIZE, BUTTON_SIZE,
+  }
+
+  -- Reset button
+  resetButton = btnsStorehouse.add(
+    STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2 + (ITEM_SIZE + ITEM_SPACE_X),
+    H - STORE_BORDER_PAD_Y - BUTTON_SIZE,
+    BUTTON_SIZE, BUTTON_SIZE,
+    'res/button_reset.png',
+    function ()
+      -- Stop
+      -- This should be triggered both on stop and on reset
       board.reset()
+      selectedItem = -1
+      boardRunProgress = 0
       -- Restore board state
       cloneGrid(board.grid, savedGrid)
       if savedRotationCount[1] ~= nil then
@@ -221,42 +257,25 @@ sceneGameplay = function (levelIndex)
       end
       -- Stop sheep animations
       for k in pairs(sheepAnim) do sheepAnim[k] = nil end
-      tut.emit('stop')
-    end
-    -- Update item buttons
-    for i = 1, NUM_ITEMS do
-      btnsStorehouse.enable(i,
-        itemCount[i] > 0 and not (isItemPath(i) and boardRunning))
-    end
-    updateButtonIcons()
-  end
-  runButton = btnsStorehouse.add(
-    BORDER_PAD_X, H - BORDER_PAD_Y - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE,
-    'res/button_run.png',
-    runButtonHandler
-  )
-  tutAreas['btn_run'] = {BORDER_PAD_X, H - BORDER_PAD_Y - ITEM_SIZE, ITEM_SIZE, ITEM_SIZE}
 
-  -- Reset button
-  resetButton = btnsStorehouse.add(
-    BORDER_PAD_X, H - BORDER_PAD_Y - ITEM_SIZE * 2 - BUTTON_SPACE,
-    ITEM_SIZE, ITEM_SIZE,
-    'res/button_reset.png',
-    function ()
       if boardRunning then
-        -- Double speed
-        boardDoubleSpeed = not boardDoubleSpeed
+        tut.emit('stop')
       else
-        -- Reset
-        boardRunning = true
-        runButtonHandler()  -- Trigger a board state reset
+        -- Reset everything
         board.reset()
         resetItemCount()
         for r = 1, board.h do
           for c = 1, board.w do rotationCount[r][c] = 0 end
         end
       end
+
+      boardRunning = false
       updateButtonIcons()
+      -- Update item buttons
+      for i = 1, NUM_ITEMS do
+        btnsStorehouse.enable(i,
+          itemCount[i] > 0 and not (isItemPath(i) and boardRunning))
+      end
     end
   )
 
