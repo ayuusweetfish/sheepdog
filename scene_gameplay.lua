@@ -49,6 +49,7 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
+  levelIndex = 92
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -709,11 +710,11 @@ sceneGameplay = function (levelIndex)
     w = CELL_SIZE * (spriteDir % 2 == 0 and 0.95 or 1.125) * w
     h = CELL_SIZE * 0.9 * h
     sprites.draw('sheep_' .. sh.flock .. '_' .. DIR_STRING[spriteDir],
-      xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, 0, w, h)
+      xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, w, h)
     -- Draw the icon if there is one
     if icon ~= nil then
       love.graphics.setColor(1, 1, 1, opacity)
-      sprites.draw(icon, xIcon, yIcon, 0, wIcon, hIcon)
+      sprites.draw(icon, xIcon, yIcon, wIcon, hIcon)
     end
   end
 
@@ -724,12 +725,12 @@ sceneGameplay = function (levelIndex)
     xBackground = W - 450 * backgroundScale
     sprites.draw('background_upperright',
       xBackground, 0,
-      0, 450 * backgroundScale, 250 * backgroundScale)
+      450 * backgroundScale, 250 * backgroundScale)
     while xBackground > 0 do
       xBackground = xBackground - 540 * backgroundScale
       sprites.draw('background_upperleft',
         xBackground, 0,
-        0, 540 * backgroundScale, 250 * backgroundScale)
+        540 * backgroundScale, 250 * backgroundScale)
     end
     local backgroundLowerWidth = 1000 * backgroundScale
     local backgroundLowerHeight = 750 * backgroundScale
@@ -738,7 +739,7 @@ sceneGameplay = function (levelIndex)
         sprites.draw('background_lower',
           (x - 1) * backgroundLowerWidth,
           (y - 1) * backgroundLowerHeight + 250 * backgroundScale,
-          0, backgroundLowerWidth, backgroundLowerHeight)
+          backgroundLowerWidth, backgroundLowerHeight)
       end
     end
     -- Border
@@ -757,7 +758,7 @@ sceneGameplay = function (levelIndex)
           sprites.draw('bush_1',
             xCell - CELL_SIZE * 0.1,
             yCell - CELL_SIZE * 0.2,
-            0, CELL_SIZE * 1.2, CELL_SIZE * 1.2)
+            CELL_SIZE * 1.2, CELL_SIZE * 1.2)
         end
         if board.grid[r][c] >= Board.PATH then
           local pts = {{0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}}
@@ -783,12 +784,12 @@ sceneGameplay = function (levelIndex)
             end
             rotation = rotation + rotationCount[r][c] * math.pi / 2
             love.graphics.setColor(1, 1, 1)
-            sprites.draw('path_' .. ty, xCell, yCell, rotation, CELL_SIZE, CELL_SIZE)
+            sprites.draw('path_' .. ty, xCell, yCell, CELL_SIZE, CELL_SIZE, 0, rotation)
             -- Entry?
             if bit.band(board.grid[r][c], Board.ENTRY) ~= 0 then
               sprites.draw('start_mark',
                 xCell + CELL_SIZE * 0.2, yCell - CELL_SIZE * 0.6,
-                0, CELL_SIZE * 0.75, CELL_SIZE * 0.9)
+                CELL_SIZE * 0.75, CELL_SIZE * 0.9)
             end
           end
           -- Draw dog
@@ -804,8 +805,8 @@ sceneGameplay = function (levelIndex)
             end
             sprites.draw('footprints',
               xCell + CELL_SIZE * 0.4, yCell,
-              rotation,
               CELL_SIZE * 0.2, CELL_SIZE * 0.5,
+              0, rotation,
               0.5, 1
             )
           end
@@ -817,7 +818,7 @@ sceneGameplay = function (levelIndex)
     local yEntry = yStart + (board.entryRow - 1) * CELL_SIZE
     for i = 1, 10 do
       sprites.draw('path_1',
-        xEntry - i * CELL_SIZE, yEntry, math.pi / 2, CELL_SIZE, CELL_SIZE)
+        xEntry - i * CELL_SIZE, yEntry, CELL_SIZE, CELL_SIZE, 0, math.pi / 2)
     end
     -- Sheep in the sheepfolds
     for i, sh in ipairs(board.sheep) do
@@ -835,18 +836,18 @@ sceneGameplay = function (levelIndex)
             sprites.draw('fence_' .. index .. '_front',
               xStart + (c - 2) * CELL_SIZE,
               yStart + (r - 1) * CELL_SIZE,
-              0, CELL_SIZE * 3, CELL_SIZE
+              CELL_SIZE * 3, CELL_SIZE
             )
           else
             sprites.draw('fence_' .. index .. '_side_upper',
               xStart + (c - 1.4) * CELL_SIZE,
               yStart + (r - 2) * CELL_SIZE,
-              0, CELL_SIZE * 0.9375, CELL_SIZE * 1.538
+              CELL_SIZE * 0.9375, CELL_SIZE * 1.538
             )
             sprites.draw('fence_' .. index .. '_side_lower',
               xStart + (c - 1.4) * CELL_SIZE,
               yStart + (r - (2 - 1.538)) * CELL_SIZE,
-              0, CELL_SIZE * 0.9375, CELL_SIZE * 1.462
+              CELL_SIZE * 0.9375, CELL_SIZE * 1.462
             )
           end
         end
@@ -860,7 +861,7 @@ sceneGameplay = function (levelIndex)
           sprites.draw(ITEM_SPRITE[DOG_ITEM_START + bit.arshift(dog, 2)],
             xStart + (c - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_X,
             yStart + (r - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_Y,
-            0, CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
+            CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
         end
       end
     end
@@ -879,7 +880,7 @@ sceneGameplay = function (levelIndex)
         sprites.draw(sprite,
           xStart + (anim[2] - 1) * CELL_SIZE + (CELL_SIZE - size) / 2,
           yStart + (anim[1] - 1) * CELL_SIZE + (CELL_SIZE - size) / 2,
-          0, size, size)
+          size, size)
       end
     end
 
@@ -932,14 +933,14 @@ sceneGameplay = function (levelIndex)
         sprites.draw(ITEM_SPRITE[selectedItem],
           xStart + (pinpointCol - 1) * CELL_SIZE + DOG_OFFSET_X * CELL_SIZE,
           yStart + (pinpointRow - 1) * CELL_SIZE + DOG_OFFSET_Y * CELL_SIZE,
-          0,
           CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
       else
         sprites.draw(ITEM_SPRITE[selectedItem],
           xStart + (pinpointCol - 1) * CELL_SIZE,
           yStart + (pinpointRow - 1) * CELL_SIZE,
-          pathCellRotation(selectedValue),
-          CELL_SIZE, CELL_SIZE)
+          CELL_SIZE, CELL_SIZE,
+          0,
+          pathCellRotation(selectedValue))
       end
     end
 
@@ -1009,7 +1010,7 @@ sceneGameplay = function (levelIndex)
           love.graphics.setColor(1, 1, 1)
           sprites.draw('sheep_' .. flock[1] .. '_front',
             xInd + (i + 0.5) * scaleInd - hInd / 2,
-            yInd - hInd / 2, 0, hInd, hInd)
+            yInd - hInd / 2, hInd, hInd)
         else
           love.graphics.setColor(0, 0, 0, 0.3)
           love.graphics.setLineWidth(1)

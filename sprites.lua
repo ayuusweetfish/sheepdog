@@ -9,9 +9,11 @@ local function texture(name)
   return tex
 end
 
-local function draw(name, x, y, r, w, h, ox, oy)
+local function draw(name, x, y, w, h, layer, r, ox, oy)
   local tex = texture(name)
   local tw, th = tex:getDimensions()
+  layer = layer or 0
+  r = r or 0
   ox = ox or 0.5
   oy = oy or 0.5
   love.graphics.draw(tex, x + w * ox, y + h * oy, r, w / tw, h / th, tw * ox, th * oy)

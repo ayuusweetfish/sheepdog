@@ -19,7 +19,7 @@ return function ()
   end
 
   s.draw = function ()
-    sprites.draw('game_start', 0, 0, 0, W, H)
+    sprites.draw('game_start', 0, 0, W, H)
   end
 
   return s
