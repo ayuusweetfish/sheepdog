@@ -63,7 +63,7 @@ function drawBackground(opacity)
   for x = 1, math.ceil(W / backgroundLowerWidth) do
     for y = 1, math.ceil(H / backgroundLowerHeight) do
       sprites.draw('background_lower',
-        (x - 1) * backgroundLowerWidth,
+        W - x * backgroundLowerWidth,
         (y - 1) * backgroundLowerHeight + 250 * backgroundScale,
         backgroundLowerWidth, backgroundLowerHeight)
     end

@@ -63,9 +63,6 @@ function love.update(dt)
   end
 end
 
-local canvasLast = love.graphics.newCanvas(W, H)
-local canvasCur = love.graphics.newCanvas(W, H)
-
 transitions['fadeBlack'] = {
   dur = 160,
   draw = function (x)
@@ -84,21 +81,14 @@ transitions['fadeBlack'] = {
 
 local levelClearText = love.graphics.newText(
   love.graphics.newFont('res/AaTianShiZhuYi-2.ttf', 120),
-  '好耶'
+  '通关'
 )
 transitions['sheepPull'] = {
   dur = 1200,
   draw = function (x)
-    love.graphics.setCanvas(canvasLast)
-    lastScene:draw()
-    love.graphics.setCanvas(canvasCur)
-    curScene:draw()
-    love.graphics.setCanvas()
-
     local sheepProgress = 0
     if x < 0.5 then
-      love.graphics.setColor(1, 1, 1)
-      love.graphics.draw(canvasLast, 0, 0)
+      lastScene:draw()
       love.graphics.setColor(0.99, 1, 0.99, math.min(x * 20, 1) * 0.7)
       love.graphics.rectangle('fill', 0, 0, W, H)
       if x >= 0.15 then
@@ -117,9 +107,14 @@ transitions['sheepPull'] = {
       local y = (x - 0.5) / 0.5
       y = 1 - (1 - y) * (1 - y) * math.exp(-3 * y)
       y = math.pow(y, 1.5)
-      love.graphics.setColor(1, 1, 1)
-      love.graphics.draw(canvasLast, W * (-y), 0)
-      love.graphics.draw(canvasCur, W * (1 - y), 0)
+      love.graphics.push()
+      love.graphics.translate(W * (1 - y), 0)
+      curScene:draw()
+      love.graphics.pop()
+      love.graphics.push()
+      love.graphics.translate(W * (-y), 0)
+      lastScene:draw()
+      love.graphics.pop()
       love.graphics.setColor(0.99, 1, 0.99, 0.7)
       love.graphics.rectangle('fill', 0, 0, W * (1 - y), H)
       sheepProgress = 0.2 + y * 0.8
