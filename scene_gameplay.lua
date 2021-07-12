@@ -949,15 +949,16 @@ sceneGameplay = function (levelIndex)
     -- Storehouse buttons
     -- First, background
     love.graphics.setColor(0.45, 0.25, 0.1, 0.75)
-    -- love.graphics.setColor(0.9, 0.9, 0.9, 0.8)
     love.graphics.rectangle('fill', 0, 0, STORE_WIDTH, H)
     -- Then, indicator
     for i = 1, NUM_ITEMS do
       local x, y = storehouseButtonCoords(i)
       if selectedItem == i and not selectedDrag then
-        love.graphics.setColor(0.6, 1, 0.7)
+        love.graphics.setColor(1.0, 0.97, 0.94)
+      elseif itemCount[i] == 0 then
+        love.graphics.setColor(0.72, 0.72, 0.72)
       else
-        love.graphics.setColor(0.9, 0.9, 0.9)
+        love.graphics.setColor(1.0, 0.97, 0.94)
       end
       love.graphics.rectangle('fill',
         x - ITEM_SURROUND_SPACE,
@@ -990,8 +991,13 @@ sceneGameplay = function (levelIndex)
       )
 
       -- Frames around buttons
-      love.graphics.setColor(0.5, 0.3, 0.1)
-      love.graphics.setLineWidth(3)
+      if selectedItem == i and not selectedDrag then
+        love.graphics.setColor(0.75, 0.9, 0.6)
+        love.graphics.setLineWidth(5)
+      else
+        love.graphics.setColor(0.4, 0.28, 0.1)
+        love.graphics.setLineWidth(3)
+      end
       love.graphics.rectangle('line',
         x - ITEM_SURROUND_SPACE,
         y - ITEM_SURROUND_SPACE,
