@@ -1,5 +1,5 @@
 require 'utils'
-local popcount4, ctz4, cellDog, cloneGrid, isMovableDog = popcount4, ctz4, cellDog, cloneGrid, isMovableDog
+local popcount4, ctz4, cellDog, cloneGrid, dogMobility = popcount4, ctz4, cellDog, cloneGrid, dogMobility
 
 local Board = require 'board'
 local buttons = require 'buttons'
@@ -49,6 +49,7 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
+  levelIndex = 7
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -332,7 +333,7 @@ sceneGameplay = function (levelIndex)
     if x >= STORE_WIDTH then
       -- Check dog first
       local rDog, cDog = dogCellPosChecked(x, y)
-      if rDog ~= nil and dogMobility(board.grid[rDog][cDog], boardRunning) == 1 then
+      if rDog ~= nil and dogMobility(board.grid[rDog][cDog], boardRunning) ~= 0 then
         holdTime = 0
         holdRow, holdCol = rDog, cDog
         holdDogPos = (x >= xStart + cDog * CELL_SIZE)
@@ -344,7 +345,7 @@ sceneGameplay = function (levelIndex)
           pinpointingItem = true
         elseif (editable(r, c) and board.grid[r][c] ~= Board.EMPTY)
             or (r >= 1 and r <= board.h and c >= 1 and c <= board.w and
-                dogMobility(board.grid[r][c], boardRunning) == 1)
+                dogMobility(board.grid[r][c], boardRunning) ~= 0)
         then
           holdTime = 0
           holdRow, holdCol = r, c
@@ -385,6 +386,13 @@ sceneGameplay = function (levelIndex)
     local cell = board.grid[pinpointRow][pinpointCol]
     local dog = cellDog(cell)
     if dog ~= 0 then
+      if dogMobility(cell, boardRunning) == 2 then
+        -- The dog cannot be moved
+        -- Maybe display a hint?
+        pinpointingItem = false
+        selectedItem = -1
+        return
+      end
       selectedItem = DOG_ITEM_START + bit.arshift(dog, 2)
       selectedValue = dog % 4
       board.grid[pinpointRow][pinpointCol] = cell - dog * 16
