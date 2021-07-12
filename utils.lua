@@ -17,6 +17,21 @@ function cellDog(cell)
   return bit.arshift(cell, 4) % 16
 end
 
+-- Return value:
+-- 0: no dog
+-- 1: dog, movable
+-- 2: dog, not movable
+function dogMobility(cell, boardRunning)
+  local dogType = bit.arshift(cell, 6) % 4
+  if dogType == 0 then
+    return 0
+  elseif not boardRunning then
+    return 1
+  else
+    return dogType == 1 and 1 or 2
+  end
+end
+
 function cloneGrid(dst, grid)
   for i = 1, #dst do dst[i] = nil end
   for i, row in ipairs(grid) do

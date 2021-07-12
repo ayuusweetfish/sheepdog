@@ -1,5 +1,5 @@
 require 'utils'
-local popcount4, ctz4, cellDog, cloneGrid = popcount4, ctz4, cellDog, cloneGrid
+local popcount4, ctz4, cellDog, cloneGrid, isMovableDog = popcount4, ctz4, cellDog, cloneGrid, isMovableDog
 
 local Board = require 'board'
 local buttons = require 'buttons'
@@ -332,7 +332,7 @@ sceneGameplay = function (levelIndex)
     if x >= STORE_WIDTH then
       -- Check dog first
       local rDog, cDog = dogCellPosChecked(x, y)
-      if rDog ~= nil then
+      if rDog ~= nil and dogMobility(board.grid[rDog][cDog], boardRunning) == 1 then
         holdTime = 0
         holdRow, holdCol = rDog, cDog
         holdDogPos = (x >= xStart + cDog * CELL_SIZE)
@@ -344,7 +344,7 @@ sceneGameplay = function (levelIndex)
           pinpointingItem = true
         elseif (editable(r, c) and board.grid[r][c] ~= Board.EMPTY)
             or (r >= 1 and r <= board.h and c >= 1 and c <= board.w and
-                cellDog(board.grid[r][c]) ~= 0)
+                dogMobility(board.grid[r][c], boardRunning) == 1)
         then
           holdTime = 0
           holdRow, holdCol = r, c
