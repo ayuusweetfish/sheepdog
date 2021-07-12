@@ -49,6 +49,7 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
+  levelIndex = 5
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -1018,33 +1019,44 @@ sceneGameplay = function (levelIndex)
     end
 
     -- Progress indicator
-    local xInd = STORE_WIDTH + 48
+    local sheepTotal = 0
+    for _, flock in ipairs(board.sheepFlocks) do
+      sheepTotal = sheepTotal + flock[2]
+    end
+    local prog = math.min(boardRunProgress / Board.CELL_SUBDIV, sheepTotal)
+
+    local xInd = STORE_WIDTH + 32
     local yInd = 48
-    local scaleInd = (W - xInd - 20) / 20
+    local scaleInd = (W - xInd - 64) / math.max(15, sheepTotal)
     local hInd = 48
     local pfxSum = 0
     for _, flock in ipairs(board.sheepFlocks) do
       local newSum = pfxSum + flock[2]
       for i = pfxSum, newSum - 1 do
+        local sprite
+        local opacity = 1
+        if i < prog - 1 then opacity = 0
+        elseif i < prog then opacity = math.pow(i - prog + 1, 3)
+        else opacity = 1 end
+        love.graphics.setColor(1, 1, 1, opacity)
         if flock[1] ~= -1 then
-          love.graphics.setColor(1, 1, 1)
-          sprites.draw('sheep_' .. flock[1] .. '_front',
-            xInd + (i + 0.5) * scaleInd - hInd / 2,
-            yInd - hInd / 2, hInd, hInd)
+          sprite = 'sheep_' .. flock[1] .. '_front'
         else
-          love.graphics.setColor(0, 0, 0, 0.3)
-          love.graphics.setLineWidth(1)
-          love.graphics.circle('line', xInd + (i + 0.5) * scaleInd, yInd, hInd * 0.9 / 2)
+          sprite = 'sheep_silhouette'
         end
+        sprites.draw(sprite,
+          xInd + (i + 1) * scaleInd - hInd / 2,
+          yInd - hInd / 2, hInd, hInd)
       end
       pfxSum = newSum
     end
-    love.graphics.setColor(0.6, 0.6, 0.6, 0.8)
-    love.graphics.setLineWidth(10)
-    local xProg = xInd + math.min(boardRunProgress / Board.CELL_SUBDIV, pfxSum) * scaleInd
-    love.graphics.line(xProg, yInd - hInd / 2 * 1.2, xProg, yInd + hInd / 2 * 1.2)
+    love.graphics.setColor(1, 1, 1)
+    local xProg = xInd + prog * scaleInd
+    sprites.draw('start_mark',
+      xProg, yInd - hInd / 2 * 1.4,
+      hInd * 0.835 * 1.2, hInd * 1.2)
 
-    tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, pfxSum * scaleInd, hInd}
+    tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, sheepTotal * scaleInd, hInd}
 
     -- Tutorial, if any
     tut.draw()
