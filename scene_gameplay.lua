@@ -426,6 +426,7 @@ sceneGameplay = function (levelIndex)
           btnsStorehouse.selected() <= NUM_ITEMS
       then
         -- Treated as if the button has been triggered
+        selectedItem = -1   -- Reset so that this is not treated as a cancel
         btnsStorehouse.trigger()
         -- Also, we are dragging now
         selectedDrag = true
