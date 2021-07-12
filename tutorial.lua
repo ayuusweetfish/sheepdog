@@ -1,3 +1,5 @@
+local sprites = require 'sprites'
+
 -- script: list of items to be displayed
 --   {{x, y, object, action, flags}, ...}
 -- if object is string, text is shown
@@ -132,16 +134,17 @@ return function (script, areas)
         love.graphics.rectangle('line', x, y, w, h)
       elseif script[i][3] ~= '' then
         local s = script[i][3]
-        local w = font:getWidth(s)
-        local pad = 12
+        local pad = 48
         local lines = 1
         for i = 1, #s do
           if s:sub(i, i) == '\n' then lines = lines + 1 end
         end
-        love.graphics.setColor(0.95, 0.95, 0.95, 0.9)
-        love.graphics.rectangle('fill',
+        local w = font:getWidth(s) + pad * 2
+        local h = font:getHeight() * lines + pad * 2
+        love.graphics.setColor(1, 1, 1, progress)
+        sprites.draw(w / h > 5 / 3 and 'bubble_1' or 'bubble_2',
           W * script[i][1] - pad, H * script[i][2] - pad,
-          w + pad * 2, font:getHeight() * lines + pad * 2)
+          w, h)
         love.graphics.setColor(0, 0, 0, progress)
         love.graphics.print(s, W * script[i][1], H * script[i][2])
       end
