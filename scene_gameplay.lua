@@ -744,6 +744,7 @@ sceneGameplay = function (levelIndex)
         local xCell = xStart + (c - 1) * CELL_SIZE
         local yCell = yStart + (r - 1) * CELL_SIZE
         if board.grid[r][c] == Board.OBSTACLE then
+          love.graphics.setColor(1, 1, 1)
           sprites.draw('bush_1',
             xCell - CELL_SIZE * 0.1,
             yCell - CELL_SIZE * 0.2,
@@ -777,14 +778,14 @@ sceneGameplay = function (levelIndex)
             -- Entry?
             if bit.band(board.grid[r][c], Board.ENTRY) ~= 0 then
               sprites.draw('start_mark',
-                xCell + CELL_SIZE * 0.2, yCell - CELL_SIZE * 0.6,
+                xCell + CELL_SIZE * 0.2, yCell - CELL_SIZE * 0.65,
                 CELL_SIZE * 0.75, CELL_SIZE * 0.9)
             end
           end
           -- Draw dog
           local dog = cellDog(board.grid[r][c])
           if dog ~= 0 then
-            love.graphics.setColor(1, 1, 1)
+            love.graphics.setColor(0.5, 0.5, 0.5)
             local rotation = (dog % 4) * math.pi / 2
             for _, anim in ipairs(cellAnim) do
               if anim[1] == r and anim[2] == c and anim[3] == ANIM_TYPE_ROTATE_DOG then
@@ -803,6 +804,7 @@ sceneGameplay = function (levelIndex)
       end
     end
     -- Entry leading cells
+    love.graphics.setColor(1, 1, 1)
     local xEntry = xStart
     local yEntry = yStart + (board.entryRow - 1) * CELL_SIZE
     for i = 1, 10 do
