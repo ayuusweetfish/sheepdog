@@ -1009,7 +1009,7 @@ sceneGameplay = function (levelIndex)
     local xInd = STORE_WIDTH + 32
     local yInd = 48
     local scaleInd = (W - xInd - 64) / math.max(15, sheepTotal)
-    local hInd = 48
+    local hInd = 40
     local pfxSum = 0
     for _, flock in ipairs(board.sheepFlocks) do
       local newSum = pfxSum + flock[2]
@@ -1026,15 +1026,14 @@ sceneGameplay = function (levelIndex)
           sprite = 'sheep_silhouette'
         end
         sprites.draw(sprite,
-          xInd + (i + 1) * scaleInd - hInd / 2,
+          xInd + (i + 1 - prog) * scaleInd - hInd / 2,
           yInd - hInd / 2, hInd, hInd)
       end
       pfxSum = newSum
     end
     love.graphics.setColor(1, 1, 1)
-    local xProg = xInd + prog * scaleInd
     sprites.draw('start_mark',
-      xProg, yInd - hInd / 2 * 1.4,
+      xInd, yInd - hInd / 2 * 1.4,
       hInd * 0.835 * 1.2, hInd * 1.2)
 
     tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, sheepTotal * scaleInd, hInd}
