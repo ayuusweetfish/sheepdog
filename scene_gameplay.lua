@@ -1,5 +1,6 @@
 require 'utils'
 local popcount4, ctz4, cellDog, cloneGrid, dogMobility = popcount4, ctz4, cellDog, cloneGrid, dogMobility
+local drawBackground = drawBackground
 
 local Board = require 'board'
 local buttons = require 'buttons'
@@ -49,7 +50,7 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  levelIndex = 5
+  levelIndex = 1
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -727,28 +728,7 @@ sceneGameplay = function (levelIndex)
 
   s.draw = function ()
     -- Background
-    local backgroundScale = 0.4
-    local xBackground
-    xBackground = W - 450 * backgroundScale
-    sprites.draw('background_upperright',
-      xBackground, 0,
-      450 * backgroundScale, 250 * backgroundScale)
-    while xBackground > 0 do
-      xBackground = xBackground - 540 * backgroundScale
-      sprites.draw('background_upperleft',
-        xBackground, 0,
-        540 * backgroundScale, 250 * backgroundScale)
-    end
-    local backgroundLowerWidth = 1000 * backgroundScale
-    local backgroundLowerHeight = 750 * backgroundScale
-    for x = 1, math.ceil(W / backgroundLowerWidth) do
-      for y = 1, math.ceil(H / backgroundLowerHeight) do
-        sprites.draw('background_lower',
-          (x - 1) * backgroundLowerWidth,
-          (y - 1) * backgroundLowerHeight + 250 * backgroundScale,
-          backgroundLowerWidth, backgroundLowerHeight)
-      end
-    end
+    drawBackground()
     -- Border
     local pad = CELL_SIZE * 0.1
     love.graphics.setColor(0.1, 0.3, 0.1, 0.6)

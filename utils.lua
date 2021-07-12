@@ -41,3 +41,31 @@ function cloneGrid(dst, grid)
   end
   return grid1
 end
+
+local sprites = require 'sprites'
+
+function drawBackground(opacity)
+  love.graphics.setColor(1, 1, 1, opacity or 1)
+  local backgroundScale = 0.4
+  local xBackground
+  xBackground = W - 450 * backgroundScale
+  sprites.draw('background_upperright',
+    xBackground, 0,
+    450 * backgroundScale, 250 * backgroundScale)
+  while xBackground > 0 do
+    xBackground = xBackground - 540 * backgroundScale
+    sprites.draw('background_upperleft',
+      xBackground, 0,
+      540 * backgroundScale, 250 * backgroundScale)
+  end
+  local backgroundLowerWidth = 1000 * backgroundScale
+  local backgroundLowerHeight = 750 * backgroundScale
+  for x = 1, math.ceil(W / backgroundLowerWidth) do
+    for y = 1, math.ceil(H / backgroundLowerHeight) do
+      sprites.draw('background_lower',
+        (x - 1) * backgroundLowerWidth,
+        (y - 1) * backgroundLowerHeight + 250 * backgroundScale,
+        backgroundLowerWidth, backgroundLowerHeight)
+    end
+  end
+end

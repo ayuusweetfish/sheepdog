@@ -6,6 +6,9 @@ local sceneGameplay = require 'scene_gameplay'
 
 local sprites = require 'sprites'
 
+require 'utils'
+local drawBackground = drawBackground
+
 _G['font_Mali'] = love.graphics.newFont('res/Mali-Regular.ttf', 24)
 _G['font_TSZY'] = love.graphics.newFont('res/AaTianShiZhuYi-2.ttf', 24)
 love.graphics.setFont(_G['font_TSZY'])
@@ -60,6 +63,9 @@ function love.update(dt)
   end
 end
 
+local canvasLast = love.graphics.newCanvas(W, H)
+local canvasCur = love.graphics.newCanvas(W, H)
+
 transitions['fadeBlack'] = {
   dur = 160,
   draw = function (x)
@@ -83,10 +89,17 @@ local levelClearText = love.graphics.newText(
 transitions['sheepPull'] = {
   dur = 1200,
   draw = function (x)
+    love.graphics.setCanvas(canvasLast)
+    lastScene:draw()
+    love.graphics.setCanvas(canvasCur)
+    curScene:draw()
+    love.graphics.setCanvas()
+
     local sheepProgress = 0
     if x < 0.5 then
-      lastScene:draw()
-      love.graphics.setColor(0.99, 1, 0.99, math.min(x * 20, 1))
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.draw(canvasLast, 0, 0)
+      love.graphics.setColor(0.99, 1, 0.99, math.min(x * 20, 1) * 0.7)
       love.graphics.rectangle('fill', 0, 0, W, H)
       if x >= 0.15 then
         local y = (x - 0.15) / 0.35
@@ -101,29 +114,31 @@ transitions['sheepPull'] = {
           (H - levelClearText:getHeight() * 1.6) / 2)
       end
     else
-      curScene:draw()
       local y = (x - 0.5) / 0.5
-      y = 1 - (1 - y) * math.exp(-3 * y)
-      y = math.pow(y, 1.5) * 1.02
-      love.graphics.setColor(0.99, 1, 0.99, 1)
-      love.graphics.rectangle('fill', W * y, 0, W * (1 - y), H)
+      y = 1 - (1 - y) * (1 - y) * math.exp(-3 * y)
+      y = math.pow(y, 1.5)
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.draw(canvasLast, W * (-y), 0)
+      love.graphics.draw(canvasCur, W * (1 - y), 0)
+      love.graphics.setColor(0.99, 1, 0.99, 0.7)
+      love.graphics.rectangle('fill', 0, 0, W * (1 - y), H)
       sheepProgress = 0.2 + y * 0.8
     end
 
-    local sheepW = 360
+    local sheepW = 300
     local sheepH = sheepW * 0.5
-    local sheepXCen = -sheepW / 2 + (W + sheepW) * sheepProgress
+    local sheepXCen = -sheepW / 2 + (W + sheepW) * (1 - sheepProgress)
 
     -- Animate the sheep
-    local period = (sheepProgress < 0.2 and 0.05 or 0.25)
+    local period = (sheepProgress < 0.2 and 0.1 or 0.4)
     local phase = math.fmod(sheepProgress, period) / period
-    sheepW = sheepW * (1 - 0.005 * math.cos(phase * math.pi * 2))
-    sheepH = sheepH * (1 + 0.008 * math.cos(phase * math.pi * 2))
+    sheepW = sheepW * (1 - 0.004 * math.cos(phase * math.pi * 2))
+    sheepH = sheepH * (1 + 0.006 * math.cos(phase * math.pi * 2))
 
     love.graphics.setColor(1, 1, 1)
     sprites.draw(
       (phase < 0.25 or phase >= 0.75) and 'sheep_running_1' or 'sheep_running_2',
-      sheepXCen + sheepW / 2, H * 0.7, -sheepW, sheepH)
+      sheepXCen - sheepW / 2, H * 0.7, sheepW, sheepH)
   end
 }
 
