@@ -49,7 +49,7 @@ end
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
-  levelIndex = 6--levelIndex or 4
+  levelIndex = 3--levelIndex or 4
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -157,11 +157,7 @@ sceneGameplay = function (levelIndex)
         tut.emit('storehouse_click ' .. selectedItem)
       end
     )
-    tutAreas['btn_storehouse ' .. i] = {
-      STORE_BORDER_PAD_X,
-      STORE_BORDER_PAD_Y + (ITEM_SIZE + ITEM_SPACE_Y) * (i - 1),
-      ITEM_SIZE, ITEM_SIZE
-    }
+    tutAreas['btn_storehouse ' .. i] = { x, y, ITEM_SIZE, ITEM_SIZE }
   end
 
   -- Text objects for count display
@@ -278,6 +274,11 @@ sceneGameplay = function (levelIndex)
       end
     end
   )
+  tutAreas['btn_stop'] = {
+    STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2 + (ITEM_SIZE + ITEM_SPACE_X),
+    H - STORE_BORDER_PAD_Y - BUTTON_SIZE,
+    BUTTON_SIZE, BUTTON_SIZE
+  }
 
   local xStart = (W + STORE_WIDTH) / 2 - CELL_SIZE * board.w / 2
   local yStart = (H + TOP_HEIGHT) / 2 - CELL_SIZE * board.h / 2

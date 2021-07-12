@@ -6,6 +6,8 @@
 --   - y == 'btn_storehouse <index>': storehouse item button
 --   - y == 'btn_run': run button
 --   - y == 'cell <row> <col>': cell
+-- otherwise if x == -2, the rectangle is shown
+--   but clickable area is not restricted
 -- if action is string, the corresponding action is awaited
 -- otherwise if action is nil, the item will be shown together
 --   with the following one
@@ -87,11 +89,24 @@ return function (script, areas)
       local x = time / 120
       progress = 1 - math.exp(-6 * x) * (1 - x)
     end
+  --[[
+    local restrict = false
+    for i = current, math.min(currentUntil, #script) do
+      if script[i][1] == -1 then
+        restrict = true
+        break
+      end
+    end
+    if restrict then
+      love.graphics.setColor(0.7, 0.7, 0.7, progress * 0.2)
+      love.graphics.rectangle('fill', 0, 0, W, H)
+    end
+  ]]
     for i = current, math.min(currentUntil, #script) do
       local progress = progress
       -- Instant?
       if script[i][5] ~= nil and script[i][5].instant then progress = 1 end
-      if script[i][1] == -1 then
+      if script[i][1] == -1 or script[i][1] == -2 then
         local a = areas[script[i][2]]
         local PAD = 16
         local xCen = a[1] + a[3] / 2
@@ -102,11 +117,19 @@ return function (script, areas)
         h = h * (0.5 + progress * 0.5)
         local x = xCen - w / 2
         local y = yCen - h / 2
-        love.graphics.setColor(0.8, 0.7, 0.2, progress)
+        if script[i][1] == -1 then
+          love.graphics.setColor(1, 0.95, 0.7, 0.5 * progress)
+        else
+          love.graphics.setColor(0.75, 0.95, 1, 0.5 * progress)
+        end
+        love.graphics.rectangle('fill', x, y, w, h)
+        if script[i][1] == -1 then
+          love.graphics.setColor(0.8, 0.7, 0.2, progress)
+        else
+          love.graphics.setColor(0.4, 0.7, 1.0, progress)
+        end
         love.graphics.setLineWidth(3)
         love.graphics.rectangle('line', x, y, w, h)
-        love.graphics.setColor(1, 0.95, 0.7, 0.5 * progress)
-        love.graphics.rectangle('fill', x, y, w, h)
       elseif script[i][3] ~= '' then
         local s = script[i][3]
         local w = font:getWidth(s)
