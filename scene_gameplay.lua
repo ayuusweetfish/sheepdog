@@ -8,6 +8,7 @@ local buttons = require 'buttons'
 local tutorial = require 'tutorial'
 
 local sprites = require 'sprites'
+local audio = require 'audio'
 
 local STORE_COLUMNS = 2
 local STORE_BORDER_PAD_X = 30
@@ -135,6 +136,11 @@ sceneGameplay = function (levelIndex)
   local ANIM_TYPE_DELIGHT = 3
   local ANIM_TYPE_QUESTION_FADE = 4
 
+  -- Which flocks have entered the board
+  local flockEntered = {}
+  -- Which flocks have reached the sheepfold (any sheep counts)
+  local flockArrived = {}
+
   local btnsStorehouse = buttons()
   for i = 1, NUM_ITEMS do
     local sprite = love.graphics.newImage('res/' .. ITEM_SPRITE[i] .. '.png')
@@ -157,6 +163,7 @@ sceneGameplay = function (levelIndex)
         end
         updateFeasiblility()
         tut.emit('storehouse_click ' .. selectedItem)
+        if isItemDog(selectedItem) then audio('bark') end
       end
     )
     tutAreas['btn_storehouse ' .. i] = { x, y, ITEM_SIZE, ITEM_SIZE }
@@ -255,6 +262,8 @@ sceneGameplay = function (levelIndex)
       end
       -- Stop sheep animations
       for k in pairs(sheepAnim) do sheepAnim[k] = nil end
+      for k in pairs(flockEntered) do flockEntered[k] = nil end
+      for k in pairs(flockArrived) do flockArrived[k] = nil end
 
       if boardRunning then
         tut.emit('stop')
@@ -502,13 +511,14 @@ sceneGameplay = function (levelIndex)
           btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0)
         end
         cellAnim[#cellAnim + 1] = {pinpointRow, pinpointCol, ANIM_TYPE_PUT, ANIM_DUR}
-        selectedItem = -1
         tut.emit('put ' .. pinpointRow .. ' ' .. pinpointCol)
         local max = 0
         for _, count in ipairs(itemCount) do
           if max < count then max = count end
         end
         if max == 0 then tut.emit('empty') end
+        if isItemPath(selectedItem) then audio('putPath') end
+        selectedItem = -1
       end
       if selectedDrag and holdRow == -1 then
         selectedItem = -1
@@ -539,13 +549,14 @@ sceneGameplay = function (levelIndex)
           rotationCount[holdRow][holdCol] = (rotationCount[holdRow][holdCol] + 1) % 4
         end
       end
+      audio('rotate')
       board.grid[holdRow][holdCol] = cell
     end
     holdDogPos = false
   end
 
   -- Time after the finishing criterion has been met
-  local gameFinishTimer = -1
+  local levelFinishTimer = -1
 
   s.update = function ()
     btnsStorehouse.update()
@@ -587,10 +598,16 @@ sceneGameplay = function (levelIndex)
             0, math.random() < 0.5 and -1e-6 or 1e-6,
             0.8 + (math.random() - 0.5) * 0.2
           }
+          if not flockArrived[sh.flock] then
+            flockArrived[sh.flock] = true
+            audio('correctSheepfold')
+          end
         elseif sh.wrongSheepfold and curAnim ~= ANIM_TYPE_EXCLAMATION then
           sheepAnim[sh] = {ANIM_TYPE_EXCLAMATION, 0}
+          audio('wrongSheepfold')
         elseif sh.confused and curAnim ~= ANIM_TYPE_QUESTION then
           sheepAnim[sh] = {ANIM_TYPE_QUESTION, 0}
+          audio('bubble')
         end
         if curAnim == ANIM_TYPE_QUESTION and not sh.confused then
           sheepAnim[sh] = {ANIM_TYPE_QUESTION_FADE, 0}
@@ -611,11 +628,18 @@ sceneGameplay = function (levelIndex)
         end
         a[2] = a[2] + 1
       end
+      -- Trigger bleat
+      for _, sh in ipairs(board.sheep) do
+        if sh.eta == 0 and not flockEntered[sh.flock] then
+          flockEntered[sh.flock] = true
+          audio('bleat')
+        end
+      end
     end
     -- Update tutorial
     tut.update()
     -- Check whether all sheep are in correct sheepfolds
-    if gameFinishTimer == -1 then
+    if levelFinishTimer == -1 then
       local sheepNotArrived = false
       for _, sh in ipairs(board.sheep) do
         if not sh.sheepfold then
@@ -624,12 +648,13 @@ sceneGameplay = function (levelIndex)
         end
       end
       if not sheepNotArrived then
-        -- Game finish
-        gameFinishTimer = 0
+        -- Level finish
+        levelFinishTimer = 0
+        audio('levelFinish')
       end
     else
-      gameFinishTimer = gameFinishTimer + 1
-      if gameFinishTimer == 480 then
+      levelFinishTimer = levelFinishTimer + 1
+      if levelFinishTimer == 480 then
         _G['replaceScene'](sceneGameplay(levelIndex + 1), 'sheepPull')
       end
     end
