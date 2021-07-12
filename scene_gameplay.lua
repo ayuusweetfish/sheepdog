@@ -282,7 +282,7 @@ sceneGameplay = function (levelIndex)
 
   local holdTime = -1
   local holdRow, holdCol = -1, -1
-  local holdDog = false
+  local holdDogPos = false  -- True if dragging a dog from outside its cell's range
 
   local dragToStorehouse = false
 
@@ -295,7 +295,8 @@ sceneGameplay = function (levelIndex)
       if rDog ~= nil then
         holdTime = 0
         holdRow, holdCol = rDog, cDog
-        holdDog = true
+        holdDogPos = (x >= xStart + cDog * CELL_SIZE)
+                  or (y < yStart + (rDog - 1) * CELL_SIZE)
       else
         -- Then ordinary cells (dogs or paths)
         local r, c = cellPos(x, y)
@@ -307,7 +308,6 @@ sceneGameplay = function (levelIndex)
         then
           holdTime = 0
           holdRow, holdCol = r, c
-          holdDog = (cellDog(board.grid[r][c]) ~= 0)
         end
       end
     end
@@ -388,7 +388,7 @@ sceneGameplay = function (levelIndex)
       end
     end
     local r, c = cellPos(x, y)
-    if holdDog then r, c = dogCellPos(x, y) end
+    if holdDogPos then r, c = dogCellPos(x, y) end
     if pinpointingItem then
       pinpointRow, pinpointCol = r, c
       dragToStorehouse = (x < STORE_WIDTH or
@@ -406,7 +406,7 @@ sceneGameplay = function (levelIndex)
     if pinpointingItem then
       pinpointingItem = false
       pinpointRow, pinpointCol = cellPos(x, y)
-      if holdDog then pinpointRow, pinpointCol = dogCellPos(x, y) end
+      if holdDogPos then pinpointRow, pinpointCol = dogCellPos(x, y) end
       dragToStorehouse = (x < STORE_WIDTH or
         pinpointRow < -1 or pinpointRow > board.h + 2 or
         pinpointCol < -1 or pinpointCol > board.w + 2)
@@ -489,7 +489,7 @@ sceneGameplay = function (levelIndex)
       end
       board.grid[holdRow][holdCol] = cell
     end
-    holdDog = false
+    holdDogPos = false
   end
 
   -- Time after the finishing criterion has been met
