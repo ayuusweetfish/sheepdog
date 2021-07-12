@@ -216,12 +216,16 @@ sceneGameplay = function (levelIndex)
       if savedItemCount[1] ~= nil then
         for i = 1, NUM_ITEMS do
           itemCount[i] = savedItemCount[i]
-          btnsStorehouse.enable(i, itemCount[i] > 0)
         end
       end
       -- Stop sheep animations
       for k in pairs(sheepAnim) do sheepAnim[k] = nil end
       tut.emit('stop')
+    end
+    -- Update item buttons
+    for i = 1, NUM_ITEMS do
+      btnsStorehouse.enable(i,
+        itemCount[i] > 0 and not (isItemPath(i) and boardRunning))
     end
     updateButtonIcons()
   end
