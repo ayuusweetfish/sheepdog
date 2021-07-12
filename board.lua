@@ -13,7 +13,7 @@ local Board = {
 
   PATH = 256,
   -- bits 0, 1, 2, 3: path N/E/S/W
-  -- bits 4, 5, 6, 7: dog (4-bit integer, 1-4 denotes direction N/E/S/W)
+  -- bits 4, 5, 6, 7: dog (4-bit integer, lower 2b = direction, upper 2b = type)
   -- higher bits: type
 
   TYPE_ORDINARY_PATH = 1,
@@ -194,8 +194,8 @@ function Board.create(level)
             else
               -- Check for the dog
               local dog = cellDog(cell)
-              if dog >= 1 and dog <= 4 then
-                dir = dog - 1
+              if dog ~= 0 then
+                dir = dog % 4
                 -- Not going back
                 if (dir + 2) % 4 == sh.dir then
                   dir = -1

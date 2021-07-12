@@ -28,6 +28,10 @@ local ITEM_SPRITE = {
   'dog', 'ice-cream_1f368'
 }
 
+local function isItemPath(i) return i >= 1 and i <= 4 end
+local function isItemDog(i) return i >= 5 and i <= 6 end
+local DOG_ITEM_START = 4
+
 local TOP_HEIGHT = 84
 
 local DOG_OFFSET_X = 0.5
@@ -65,9 +69,6 @@ sceneGameplay = function (levelIndex)
     feasible[r] = {}
     for c = 1, board.w do feasible[r][c] = false end
   end
-
-  local function isItemPath(i) return i >= 1 and i <= 4 end
-  local function isItemDog(i) return i >= 5 and i <= 6 end
 
   local function editable(r, c)
     return
@@ -149,7 +150,7 @@ sceneGameplay = function (levelIndex)
         elseif selectedItem == 2 then selectedValue = 1 + 2
         elseif selectedItem == 3 then selectedValue = 1 + 2 + 4
         elseif selectedItem == 4 then selectedValue = 1 + 2 + 4 + 8
-        elseif selectedItem == 5 then selectedValue = 1
+        elseif isItemDog(selectedItem) then selectedValue = 0
         end
         updateFeasiblility()
         tut.emit('storehouse_click ' .. selectedItem)
@@ -365,9 +366,8 @@ sceneGameplay = function (levelIndex)
     local cell = board.grid[pinpointRow][pinpointCol]
     local dog = cellDog(cell)
     if dog ~= 0 then
-      -- TODO: Handle other dogs
-      selectedItem = 5
-      selectedValue = dog
+      selectedItem = DOG_ITEM_START + bit.arshift(dog, 2)
+      selectedValue = dog % 4
       board.grid[pinpointRow][pinpointCol] = cell - dog * 16
     else
       -- Moving path
@@ -386,8 +386,8 @@ sceneGameplay = function (levelIndex)
   end
 
   local function rotateDogForPath(dog, cell)
-    while bit.band(cell, bit.lshift(1, dog - 1)) == 0 do
-      dog = dog % 4 + 1
+    while bit.band(cell, bit.lshift(1, dog)) == 0 do
+      dog = (dog + 1) % 4
     end
     return dog
   end
@@ -465,6 +465,7 @@ sceneGameplay = function (levelIndex)
           local cell = board.grid[pinpointRow][pinpointCol]
           board.grid[pinpointRow][pinpointCol] =
             cell + rotateDogForPath(selectedValue, cell) * 16
+                 + (selectedItem - DOG_ITEM_START) * 64   -- dog type
         end
         if not selectedDrag or holdRow == -1 then
           itemCount[selectedItem] = itemCount[selectedItem] - 1
@@ -489,9 +490,9 @@ sceneGameplay = function (levelIndex)
       local cell = board.grid[holdRow][holdCol]
       local sides = cell % 16
       local dog = cellDog(cell)
-      if dog >= 1 and dog <= 4 then
-        local newDog = rotateDogForPath(dog % 4 + 1, cell)
-        cell = cell + (newDog - dog) * 16
+      if dog ~= 0 then
+        local newDog = rotateDogForPath((dog + 1) % 4, cell)
+        cell = cell + (newDog - dog % 4) * 16
         cellAnim[#cellAnim + 1] = {
           holdRow, holdCol, ANIM_TYPE_ROTATE_DOG, ANIM_DUR,
           (dog + 2) % 4 == newDog % 4
@@ -775,7 +776,7 @@ sceneGameplay = function (levelIndex)
           local dog = cellDog(board.grid[r][c])
           if dog ~= 0 then
             love.graphics.setColor(1, 1, 1)
-            local rotation = (dog - 1) * math.pi / 2
+            local rotation = (dog % 4) * math.pi / 2
             for _, anim in ipairs(cellAnim) do
               if anim[1] == r and anim[2] == c and anim[3] == ANIM_TYPE_ROTATE_DOG then
                 rotation = rotation -
@@ -823,8 +824,9 @@ sceneGameplay = function (levelIndex)
     -- Dogs on the grid
     for r = 1, board.h do
       for c = 1, board.w do
-        if cellDog(board.grid[r][c]) ~= 0 then
-          sprites.draw('dog',
+        local dog = cellDog(board.grid[r][c])
+        if dog ~= 0 then
+          sprites.draw(ITEM_SPRITE[DOG_ITEM_START + bit.arshift(dog, 2)],
             xStart + (c - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_X,
             yStart + (r - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_Y,
             0, CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
