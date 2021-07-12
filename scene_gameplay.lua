@@ -831,12 +831,24 @@ sceneGameplay = function (levelIndex)
         if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
           -- Draw sheepfold
           local index = (ty - Board.TYPE_SHEEPFOLD + 1)
-          sprites.draw('fence_' .. index,
-            xStart + (c - 2) * CELL_SIZE,
-            yStart + (r - 1) * CELL_SIZE,
-            (bit.band(board.grid[r][c], 4) ~= 0 and 0 or math.pi / 2),
-            CELL_SIZE * 3, CELL_SIZE
-          )
+          if bit.band(board.grid[r][c], 4) ~= 0 then
+            sprites.draw('fence_' .. index .. '_front',
+              xStart + (c - 2) * CELL_SIZE,
+              yStart + (r - 1) * CELL_SIZE,
+              0, CELL_SIZE * 3, CELL_SIZE
+            )
+          else
+            sprites.draw('fence_' .. index .. '_side_upper',
+              xStart + (c - 1.4) * CELL_SIZE,
+              yStart + (r - 2) * CELL_SIZE,
+              0, CELL_SIZE * 0.9375, CELL_SIZE * 1.538
+            )
+            sprites.draw('fence_' .. index .. '_side_lower',
+              xStart + (c - 1.4) * CELL_SIZE,
+              yStart + (r - (2 - 1.538)) * CELL_SIZE,
+              0, CELL_SIZE * 0.9375, CELL_SIZE * 1.462
+            )
+          end
         end
       end
     end
