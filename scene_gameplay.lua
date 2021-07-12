@@ -29,6 +29,7 @@ sceneGameplay = function (levelIndex)
 
   local board = Board.create(levelIndex)
   local itemCount = {}
+  local NUM_ITEMS = 5
 
   local cellSizeVert = H * 0.875 * (1 - math.exp(-0.4 * (board.h - 0.6))) / board.h
   local cellSizeHorz = (W - STORE_WIDTH) * 0.95 * (1 - math.exp(-0.4 * (board.w - 0.6))) / board.w
@@ -58,14 +59,14 @@ sceneGameplay = function (levelIndex)
   end
 
   local function updateFeasiblility()
-    if selectedItem >= 1 and selectedItem <= 4 then
+    if isItemPath(selectedItem) then
       -- Path cells can be placed in any empty cell
       for r = 1, board.h do
         for c = 1, board.w do
           feasible[r][c] = (board.grid[r][c] == Board.EMPTY)
         end
       end
-    elseif selectedItem == 5 then
+    elseif isItemDog(selectedItem) then
       -- Dogs can be placed in junctions
       for r = 1, board.h do
         for c = 1, board.w do
@@ -116,7 +117,7 @@ sceneGameplay = function (levelIndex)
   local itemSprites = {
     'path_1', 'path_2', 'path_3', 'path_4', 'dog'
   }
-  for i = 1, 5 do
+  for i = 1, NUM_ITEMS do
     local sprite = love.graphics.newImage('res/' .. itemSprites[i] .. '.png')
     sprite:setFilter('nearest', 'nearest')
     btnsStorehouse.add(
@@ -152,7 +153,7 @@ sceneGameplay = function (levelIndex)
   local textCount = {}
 
   local function resetItemCount()
-    for i = 1, 5 do
+    for i = 1, NUM_ITEMS do
       itemCount[i] = board.itemCount[i]
       btnsStorehouse.enable(i, itemCount[i] > 0)
     end
@@ -190,7 +191,7 @@ sceneGameplay = function (levelIndex)
       -- Save board state
       cloneGrid(savedGrid, board.grid)
       cloneGrid(savedRotationCount, rotationCount)
-      for i = 1, 5 do savedItemCount[i] = itemCount[i] end
+      for i = 1, NUM_ITEMS do savedItemCount[i] = itemCount[i] end
       tut.emit('run')
     else
       board.reset()
@@ -198,7 +199,7 @@ sceneGameplay = function (levelIndex)
       cloneGrid(board.grid, savedGrid)
       cloneGrid(rotationCount, savedRotationCount)
       if savedItemCount[1] ~= nil then
-        for i = 1, 5 do
+        for i = 1, NUM_ITEMS do
           itemCount[i] = savedItemCount[i]
           btnsStorehouse.enable(i, itemCount[i] > 0)
         end
@@ -345,6 +346,7 @@ sceneGameplay = function (levelIndex)
     local cell = board.grid[pinpointRow][pinpointCol]
     local dog = cellDog(cell)
     if dog ~= 0 then
+      -- TODO: Handle other dogs
       selectedItem = 5
       selectedValue = dog
       board.grid[pinpointRow][pinpointCol] = cell - dog * 16
@@ -375,7 +377,7 @@ sceneGameplay = function (levelIndex)
     if btnsStorehouse.move(x, y) then
       if x >= STORE_WIDTH and
           btnsStorehouse.selected() >= 1 and
-          btnsStorehouse.selected() <= 5
+          btnsStorehouse.selected() <= NUM_ITEMS
       then
         -- Treated as if the button has been triggered
         btnsStorehouse.trigger()
@@ -437,10 +439,10 @@ sceneGameplay = function (levelIndex)
       -- Target location may be changed for recovery so re-check feasibility
       if destFeasible then
         -- Put item down
-        if selectedItem >= 1 and selectedItem <= 4 then
+        if isItemPath(selectedItem) then
           board.grid[pinpointRow][pinpointCol] = Board.PATH + selectedValue
           rotationCount[pinpointRow][pinpointCol] = 0
-        elseif selectedItem == 5 then
+        elseif isItemDog(selectedItem) then
           local cell = board.grid[pinpointRow][pinpointCol]
           board.grid[pinpointRow][pinpointCol] =
             cell + rotateDogForPath(selectedValue, cell) * 16
@@ -874,7 +876,7 @@ sceneGameplay = function (levelIndex)
       )
       -- Item image
       love.graphics.setColor(1, 1, 1, alpha)
-      if selectedItem == 5 then
+      if isItemDog(selectedItem) then
         sprites.draw(itemSprites[selectedItem],
           xStart + (pinpointCol - 1) * CELL_SIZE + DOG_OFFSET_X * CELL_SIZE,
           yStart + (pinpointRow - 1) * CELL_SIZE + DOG_OFFSET_Y * CELL_SIZE,
@@ -912,7 +914,7 @@ sceneGameplay = function (levelIndex)
     btnsStorehouse.draw()
 
     -- Text
-    for i = 1, 5 do
+    for i = 1, NUM_ITEMS do
       local text = textCount[itemCount[i]]
       if text == nil then
         text = love.graphics.newText(_G['font_Mali'], tostring(itemCount[i]))
@@ -934,7 +936,7 @@ sceneGameplay = function (levelIndex)
     end
 
     -- Frames around buttons
-    for i = 1, 5 do
+    for i = 1, NUM_ITEMS do
       love.graphics.setColor(0.5, 0.3, 0.1)
       love.graphics.setLineWidth(3)
       love.graphics.rectangle('line',
