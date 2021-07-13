@@ -1,3 +1,5 @@
+local sprites = require 'sprites'
+
 local function inRect(px, py, x, y, w, h)
   return px >= x and px < x + w and
          py >= y and py < y + h
@@ -10,22 +12,11 @@ return function ()
   local selected = -1
   local ptInside = false
 
-  local function processSprite(sprite, w, h)
-    if type(sprite) == 'string' then
-      sprite = love.graphics.newImage(sprite)
-    end
-    local iw, ih = sprite:getDimensions()
-    sx, sy = w / iw, h / ih
-    return sprite, sx, sy
-  end
-
   g.add = function (x, y, w, h, sprite, fn)
-    local sprite, sx, sy = processSprite(sprite, w, h)
     btns[#btns + 1] = {
       x = x, y = y,
       w = w, h = h,
       sprite = sprite,
-      sx = sx, sy = sy,
       fn = fn,
       enabled = true,
     }
@@ -38,10 +29,7 @@ return function ()
   end
 
   g.sprite = function (i, sprite)
-    local sprite, sx, sy = processSprite(sprite, btns[i].w, btns[i].h)
     btns[i].sprite = sprite
-    btns[i].sx = sx
-    btns[i].sy = sy
   end
 
   g.selected = function ()
@@ -89,13 +77,13 @@ return function ()
   g.draw = function ()
     for i, b in ipairs(btns) do
       if not b.enabled then
-        love.graphics.setColor(1, 1, 1, 0.4)
+        love.graphics.setColor(1, 1, 1, 0.2)
       elseif i == selected and ptInside then
         love.graphics.setColor(0.8, 0.8, 0.8)
       else
         love.graphics.setColor(1, 1, 1)
       end
-      love.graphics.draw(b.sprite, b.x, b.y, 0, b.sx, b.sy)
+      sprites.draw(b.sprite, b.x, b.y, b.w, b.h)
     end
     love.graphics.setColor(1, 1, 1)
   end

@@ -9,6 +9,10 @@ local function texture(name)
   return tex
 end
 
+local function dimensions(name)
+  return texture(name):getDimensions()
+end
+
 local function draw(name, x, y, w, h, layer, r, ox, oy)
   local tex = texture(name)
   local tw, th = tex:getDimensions()
@@ -29,6 +33,7 @@ end
 
 return {
   draw = draw,
+  dimensions = dimensions,
   delete = delete,
   flush = flush,
 }

@@ -143,11 +143,10 @@ sceneGameplay = function (levelIndex)
 
   local btnsStorehouse = buttons()
   for i = 1, NUM_ITEMS do
-    local sprite = love.graphics.newImage('res/' .. ITEM_SPRITE[i] .. '.png')
     local x, y = storehouseButtonCoords(i)
     btnsStorehouse.add(
       x, y, ITEM_SIZE, ITEM_SIZE,
-      sprite,
+      ITEM_SPRITE[i],
       function ()
         if selectedItem == i then
           selectedItem = -1
@@ -192,14 +191,14 @@ sceneGameplay = function (levelIndex)
   local function updateButtonIcons()
     if boardRunning then
       if boardDoubleSpeed then
-        btnsStorehouse.sprite(runButton, 'res/button_run.png')
+        btnsStorehouse.sprite(runButton, 'button_run')
       else
-        btnsStorehouse.sprite(runButton, 'res/button_ff.png')
+        btnsStorehouse.sprite(runButton, 'button_ff')
       end
-      btnsStorehouse.sprite(resetButton, 'res/button_stop.png')
+      btnsStorehouse.sprite(resetButton, 'button_stop')
     else
-      btnsStorehouse.sprite(runButton, 'res/button_run.png')
-      btnsStorehouse.sprite(resetButton, 'res/button_reset.png')
+      btnsStorehouse.sprite(runButton, 'button_run')
+      btnsStorehouse.sprite(resetButton, 'button_reset')
     end
   end
   local function runButtonHandler()
@@ -229,7 +228,7 @@ sceneGameplay = function (levelIndex)
     STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2,
     H - STORE_BORDER_PAD_Y - BUTTON_SIZE - BUTTON_OFF,
     BUTTON_SIZE, BUTTON_SIZE,
-    'res/button_run.png',
+    'button_run',
     runButtonHandler
   )
   tutAreas['btn_run'] = {
@@ -243,7 +242,7 @@ sceneGameplay = function (levelIndex)
     STORE_BORDER_PAD_X + (ITEM_SIZE - BUTTON_SIZE) / 2 + (ITEM_SIZE + ITEM_SPACE_X),
     H - STORE_BORDER_PAD_Y - BUTTON_SIZE - BUTTON_OFF,
     BUTTON_SIZE, BUTTON_SIZE,
-    'res/button_reset.png',
+    'button_reset',
     function ()
       -- Stop
       -- This should be triggered both on stop and on reset
