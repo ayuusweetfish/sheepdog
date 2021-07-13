@@ -4,6 +4,10 @@ local sceneGameplay = require 'scene_gameplay'
 return function ()
   local s = {}
 
+  local image = love.graphics.newImage('res/background/game_start.png')
+  local w, h = image:getDimensions()
+  local sx, sy = W / w, H / h
+
   s.press = function (x, y)
   end
 
@@ -18,11 +22,10 @@ return function ()
   end
 
   s.draw = function ()
-    sprites.draw('game_start', 0, 0, W, H)
+    love.graphics.draw(image, 0, 0, 0, sx, sy)
   end
 
   s.destroy = function ()
-    sprites.delete('game_start')
   end
 
   return s

@@ -3,7 +3,7 @@ local cache = {}
 local function texture(name)
   local tex = cache[name]
   if tex == nil then
-    tex = love.graphics.newImage('res/' .. name .. '.png')
+    tex = love.graphics.newImage('res/sprites/' .. name .. '.png')
     cache[name] = tex
   end
   return tex
