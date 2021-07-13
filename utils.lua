@@ -45,7 +45,7 @@ end
 local sprites = require 'sprites'
 
 function drawBackground(opacity)
-  love.graphics.setColor(1, 1, 1, opacity or 1)
+  sprites.tint(1, 1, 1, opacity or 1)
   local backgroundScale = 0.4
   local xBackground
   xBackground = W - 450 * backgroundScale
@@ -84,12 +84,12 @@ function drawCoarseRect(x1, y1, w, h, weight)
   local yCount = math.ceil((y2 - y1) / l)
   for i = 0, xCount do
     local x = x1 - ext + (x2 - x1 - l + ext * 2) * i / xCount
-    sprites.draw(sprite, x, y1 - w / 2, l, w, 0, 0, 0, 0.5)
-    sprites.draw(sprite, x, y2 - w / 2, l, w, 0, 0, 0, 0.5)
+    sprites.draw(sprite, x, y1, l, w, 0, 0, 0, 0.5)
+    sprites.draw(sprite, x, y2, l, w, 0, 0, 0, 0.5)
   end
   for i = 0, yCount do
     local y = y1 - ext + (y2 - y1 - l + ext * 2) * i / yCount
-    sprites.draw(sprite, x1, y - w / 2, l, w, 0, math.pi / 2, 0, 0.5)
-    sprites.draw(sprite, x2, y - w / 2, l, w, 0, math.pi / 2, 0, 0.5)
+    sprites.draw(sprite, x1, y, l, w, 0, math.pi / 2, 0, 0.5)
+    sprites.draw(sprite, x2, y, l, w, 0, math.pi / 2, 0, 0.5)
   end
 end

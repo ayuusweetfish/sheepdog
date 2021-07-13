@@ -130,10 +130,10 @@ transitions['sheepPull'] = {
     sheepW = sheepW * (1 - 0.004 * math.cos(phase * math.pi * 2))
     sheepH = sheepH * (1 + 0.006 * math.cos(phase * math.pi * 2))
 
-    love.graphics.setColor(1, 1, 1)
     sprites.draw(
       (phase < 0.25 or phase >= 0.75) and 'sheep_running_1' or 'sheep_running_2',
       sheepXCen - sheepW / 2, H * 0.7, sheepW, sheepH)
+    sprites.flush()
   end
 }
 

@@ -744,7 +744,7 @@ sceneGameplay = function (levelIndex)
       end
     end
     -- Draw the sheep
-    love.graphics.setColor(1, 1, 1)
+    sprites.tint(1, 1, 1)
     local rate = math.sin((boardRunProgress + index * 123) / 50)
     local w = 1 + rate * 0.01
     local h = 1 - rate * 0.02
@@ -756,18 +756,20 @@ sceneGameplay = function (levelIndex)
       xCen - w / 2, yCen + CELL_SIZE * 0.05 - h, w, h)
     -- Draw the icon if there is one
     if icon ~= nil then
-      love.graphics.setColor(1, 1, 1, opacity)
+      sprites.tint(1, 1, 1, opacity)
       sprites.draw(icon, xIcon, yIcon, wIcon, hIcon)
     end
   end
 
   s.draw = function ()
+    local textDrawCalls = {}
+
     -- Background
     drawBackground()
     -- Border
     local pad = CELL_SIZE * 0.2
-    love.graphics.setColor(0.4, 0.6, 0.4)
-    love.graphics.setColor(0.95, 1, 0.95)
+    sprites.tint(0.4, 0.6, 0.4)
+    sprites.tint(0.95, 1, 0.95)
     drawCoarseRect(
       xStart - pad, yStart - pad,
       CELL_SIZE * board.w + pad * 2,
@@ -778,7 +780,7 @@ sceneGameplay = function (levelIndex)
         local xCell = xStart + (c - 1) * CELL_SIZE
         local yCell = yStart + (r - 1) * CELL_SIZE
         if board.grid[r][c] == Board.OBSTACLE then
-          love.graphics.setColor(1, 1, 1)
+          sprites.tint(1, 1, 1)
           sprites.draw('bush_1',
             xCell - CELL_SIZE * 0.1,
             yCell - CELL_SIZE * 0.2,
@@ -791,7 +793,7 @@ sceneGameplay = function (levelIndex)
           if ty == 0 then
             -- Sheepfolds with one inlet
             --[[
-            love.graphics.setColor(1, 0.8, 0.6)
+            sprites.tint(1, 0.8, 0.6)
             love.graphics.setLineWidth(CELL_SIZE / 4)
             local dir = ctz4(board.grid[r][c] % 16)
             love.graphics.line(
@@ -807,19 +809,21 @@ sceneGameplay = function (levelIndex)
               end
             end
             rotation = rotation + rotationCount[r][c] * math.pi / 2
-            love.graphics.setColor(1, 1, 1)
-            sprites.draw('path_' .. ty, xCell, yCell, CELL_SIZE, CELL_SIZE, 0, rotation)
+            sprites.tint(1, 1, 1)
+            sprites.draw('path_' .. ty,
+              xCell + CELL_SIZE / 2, yCell + CELL_SIZE / 2,
+              CELL_SIZE, CELL_SIZE, 0, rotation, 0.5, 0.5)
             -- Entry?
             if bit.band(board.grid[r][c], Board.ENTRY) ~= 0 then
               sprites.draw('start_mark',
-                xCell + CELL_SIZE * 0.2, yCell - CELL_SIZE * 0.65,
-                CELL_SIZE * 0.75, CELL_SIZE * 0.9)
+                xCell + CELL_SIZE / 2, yCell + CELL_SIZE * 0.25,
+                CELL_SIZE * 0.75, CELL_SIZE * 0.9, 0, 0, 0.5, 1)
             end
           end
           -- Draw dog
           local dog = cellDog(board.grid[r][c])
           if dog ~= 0 then
-            love.graphics.setColor(0.5, 0.5, 0.5)
+            sprites.tint(0.5, 0.5, 0.5)
             local rotation = (dog % 4) * math.pi / 2
             for _, anim in ipairs(cellAnim) do
               if anim[1] == r and anim[2] == c and anim[3] == ANIM_TYPE_ROTATE_DOG then
@@ -828,26 +832,23 @@ sceneGameplay = function (levelIndex)
               end
             end
             sprites.draw('footprints',
-              xCell + CELL_SIZE * 0.4, yCell,
-              CELL_SIZE * 0.2, CELL_SIZE * 0.5,
-              0, rotation,
-              0.5, 1
-            )
+              xCell + CELL_SIZE / 2, yCell + CELL_SIZE / 2,
+              CELL_SIZE * 0.2, CELL_SIZE * 0.5, 0, rotation, 0.5, 1)
           end
         end
       end
     end
     -- Entry leading cells
-    love.graphics.setColor(1, 1, 1)
+    sprites.tint(1, 1, 1)
     local xEntry = xStart
     local yEntry = yStart + (board.entryRow - 1) * CELL_SIZE
-    for i = 1, 10 do
+    for i = 0, 9 do
       sprites.draw('path_1',
         xEntry - i * CELL_SIZE, yEntry, CELL_SIZE, CELL_SIZE, 0, math.pi / 2)
     end
     -- Sheepfolds (1)
     -- TODO: Use layers when that is implementated
-    love.graphics.setColor(1, 1, 1)
+    sprites.tint(1, 1, 1)
     for r = 1, board.h do
       for c = 1, board.w do
         local ty = math.floor(board.grid[r][c] / Board.PATH)
@@ -870,7 +871,7 @@ sceneGameplay = function (levelIndex)
       if sh.sheepfold then drawSheep(i, sh) end
     end
     -- Sheepfolds (2)
-    love.graphics.setColor(1, 1, 1)
+    sprites.tint(1, 1, 1)
     for r = 1, board.h do
       for c = 1, board.w do
         local ty = math.floor(board.grid[r][c] / Board.PATH)
@@ -914,7 +915,7 @@ sceneGameplay = function (levelIndex)
       if anim[3] == ANIM_TYPE_PUT or anim[3] == ANIM_TYPE_REMOVE then
         local sprite = (anim[3] == ANIM_TYPE_PUT and 'puff' or 'pop')
         local size = CELL_SIZE * (1.1 + easeProg(anim[4]) * 0.9)
-        love.graphics.setColor(1, 1, 1,
+        sprites.tint(1, 1, 1,
           anim[4] / ANIM_DUR * (anim[3] == ANIM_TYPE_PUT and 0.3 or 0.7))
         sprites.draw(sprite,
           xStart + (anim[2] - 1) * CELL_SIZE + (CELL_SIZE - size) / 2,
@@ -928,8 +929,8 @@ sceneGameplay = function (levelIndex)
       for r = 1, board.h do
         for c = 1, board.w do
           if feasible[r][c] then
-            love.graphics.setColor(1, 1, 0, 0.4)
-            love.graphics.rectangle('fill',
+            sprites.tint(1, 1, 0, 0.4)
+            sprites.rectangle(
               xStart + (c - 1) * CELL_SIZE,
               yStart + (r - 1) * CELL_SIZE,
               CELL_SIZE, CELL_SIZE)
@@ -943,31 +944,31 @@ sceneGameplay = function (levelIndex)
       local alpha   -- Opacity of the shadow sprite
       if dragToStorehouse then
         -- Item will be moved back to the storehouse if dropped here
-        love.graphics.setColor(0.9, 0.5, 0.4, 0.1)
+        sprites.tint(0.9, 0.5, 0.4, 0.1)
         alpha = 0.2
       elseif pinpointRow >= 1 and pinpointRow <= board.h and
          pinpointCol >= 1 and pinpointCol <= board.w and
          feasible[pinpointRow][pinpointCol]
       then
         -- Feasible position
-        love.graphics.setColor(0.8, 0.8, 0.4, 0.4)
+        sprites.tint(0.8, 0.8, 0.4, 0.4)
         alpha = 0.6
       else
         -- Item will be restored to original position if dropped here
-        love.graphics.setColor(0.9, 0.5, 0.4, 0.4)
+        sprites.tint(0.9, 0.5, 0.4, 0.4)
         alpha = 0.2
       end
       local xCell = xStart + (pinpointCol - 1) * CELL_SIZE
       local yCell = yStart + (pinpointRow - 1) * CELL_SIZE
-      love.graphics.rectangle('fill', xCell, 0, CELL_SIZE, yCell)
-      love.graphics.rectangle('fill', xCell, yCell + CELL_SIZE, CELL_SIZE, H - (yCell + CELL_SIZE))
-      love.graphics.rectangle('fill',
+      sprites.rectangle(xCell, 0, CELL_SIZE, yCell)
+      sprites.rectangle(xCell, yCell + CELL_SIZE, CELL_SIZE, H - (yCell + CELL_SIZE))
+      sprites.rectangle(
         STORE_WIDTH,
         yStart + (pinpointRow - 1) * CELL_SIZE,
         W - STORE_WIDTH, CELL_SIZE
       )
       -- Item image
-      love.graphics.setColor(1, 1, 1, alpha)
+      sprites.tint(1, 1, 1, alpha)
       if isItemDog(selectedItem) then
         sprites.draw(ITEM_SPRITE[selectedItem],
           xStart + (pinpointCol - 1) * CELL_SIZE + DOG_OFFSET_X * CELL_SIZE,
@@ -985,21 +986,21 @@ sceneGameplay = function (levelIndex)
 
     -- Storehouse buttons
     -- First, background
-    love.graphics.setColor(0.45, 0.25, 0.1, 0.75)
-    love.graphics.rectangle('fill', 0, 0, STORE_WIDTH, H * 0.77)
-    love.graphics.setColor(157 / 255, 102 / 255, 55 / 255, 0.75)
-    love.graphics.rectangle('fill', 0, H * 0.77, STORE_WIDTH, H * 0.23)
+    sprites.tint(0.45, 0.25, 0.1, 0.75)
+    sprites.rectangle(0, 0, STORE_WIDTH, H * 0.77)
+    sprites.tint(157 / 255, 102 / 255, 55 / 255, 0.75)
+    sprites.rectangle(0, H * 0.77, STORE_WIDTH, H * 0.23)
     -- Then, indicator
     for i = 1, NUM_ITEMS do
       local x, y = storehouseButtonCoords(i)
       if selectedItem == i and not selectedDrag then
-        love.graphics.setColor(1.0, 0.97, 0.94)
+        sprites.tint(1.0, 0.97, 0.94)
       elseif itemCount[i] == 0 then
-        love.graphics.setColor(0.88, 0.88, 0.85)
+        sprites.tint(0.88, 0.88, 0.85)
       else
-        love.graphics.setColor(1.0, 0.97, 0.94)
+        sprites.tint(1.0, 0.97, 0.94)
       end
-      love.graphics.rectangle('fill',
+      sprites.rectangle(
         x - ITEM_SURROUND_SPACE,
         y - ITEM_SURROUND_SPACE,
         ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
@@ -1020,22 +1021,22 @@ sceneGameplay = function (levelIndex)
       local textSize = 24
       local xText = x + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
       local yText = y + ITEM_SIZE + ITEM_SURROUND_SPACE - textSize
-      love.graphics.setColor(0.2, 0.2, 0.2, 0.75)
-      love.graphics.rectangle('fill', xText, yText, textSize, textSize)
+      sprites.tint(0.2, 0.2, 0.2, 0.75)
+      sprites.rectangle(xText, yText, textSize, textSize)
       local textScale = 0.75
-      love.graphics.setColor(0.95, 0.95, 0.95)
-      love.graphics.draw(text,
+      textDrawCalls[#textDrawCalls + 1] = {
+        text,
         xText + (textSize - text:getWidth() * textScale) / 2, yText - 2,
         0, textScale, textScale
-      )
+      }
 
       -- Frames around buttons
       local w = 6
       if selectedItem == i and not selectedDrag then
-        love.graphics.setColor(0.8, 0.9, 0.6)
+        sprites.tint(0.8, 0.9, 0.6)
         w = 8
       else
-        love.graphics.setColor(0.4, 0.28, 0.1)
+        sprites.tint(0.4, 0.28, 0.1)
       end
       drawCoarseRect(
         x - ITEM_SURROUND_SPACE,
@@ -1064,7 +1065,7 @@ sceneGameplay = function (levelIndex)
         if i < prog - 1 then opacity = 0
         elseif i < prog then opacity = math.pow(i - prog + 1, 3)
         else opacity = 1 end
-        love.graphics.setColor(1, 1, 1, opacity)
+        sprites.tint(1, 1, 1, opacity)
         if flock[1] ~= -1 then
           sprite = 'sheep_' .. flock[1] .. '_front'
         else
@@ -1076,17 +1077,22 @@ sceneGameplay = function (levelIndex)
       end
       pfxSum = newSum
     end
-    love.graphics.setColor(1, 1, 1)
+    sprites.tint(1, 1, 1)
     sprites.draw('start_mark',
       xInd, yInd - hInd / 2 * 1.4,
       hInd * 0.835 * 1.2, hInd * 1.2)
 
     tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, (sheepTotal + 0.5) * scaleInd, hInd}
 
+    -- Flush sprites before printing
+    sprites.flush()
+    love.graphics.setColor(0.95, 0.95, 0.95)
+    for _, t in ipairs(textDrawCalls) do
+      love.graphics.draw(unpack(t))
+    end
+
     -- Tutorial, if any
     tut.draw()
-
-    love.graphics.setColor(1, 1, 1)
   end
 
   return s

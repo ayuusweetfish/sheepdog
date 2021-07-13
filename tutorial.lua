@@ -102,10 +102,11 @@ return function (script, areas)
       end
     end
     if restrict then
-      love.graphics.setColor(0.7, 0.7, 0.7, progress * 0.2)
-      love.graphics.rectangle('fill', 0, 0, W, H)
+      sprites.tint(0.7, 0.7, 0.7, progress * 0.2)
+      sprites.rectangle(0, 0, W, H)
     end
   ]]
+    local textDrawCalls = {}
     for i = current, math.min(currentUntil, #script) do
       local progress = progress
       -- Instant?
@@ -122,15 +123,15 @@ return function (script, areas)
         local x = xCen - w / 2
         local y = yCen - h / 2
         if script[i][1] == -1 then
-          love.graphics.setColor(1, 0.95, 0.7, 0.5 * progress)
+          sprites.tint(1, 0.95, 0.7, 0.5 * progress)
         else
-          love.graphics.setColor(0.75, 0.95, 1, 0.5 * progress)
+          sprites.tint(0.75, 0.95, 1, 0.5 * progress)
         end
-        love.graphics.rectangle('fill', x, y, w, h)
+        sprites.rectangle(x, y, w, h)
         if script[i][1] == -1 then
-          love.graphics.setColor(0.8, 0.7, 0.2, progress)
+          sprites.tint(0.8, 0.7, 0.2, progress)
         else
-          love.graphics.setColor(0.4, 0.7, 1.0, progress)
+          sprites.tint(0.4, 0.7, 1.0, progress)
         end
         drawCoarseRect(x, y, w, h)
       elseif script[i][3] ~= '' then
@@ -142,13 +143,23 @@ return function (script, areas)
         end
         local w = font:getWidth(s) + pad * 2
         local h = font:getHeight() * lines + pad * 2
-        love.graphics.setColor(1, 1, 1, progress)
+        sprites.tint(1, 1, 1, progress)
         sprites.draw(w / h > 5 / 3 and 'bubble_1' or 'bubble_2',
           W * script[i][1] - pad, H * script[i][2] - pad,
           w, h)
-        love.graphics.setColor(0.3, 0.3, 0.3, progress)
-        love.graphics.print(s, W * script[i][1], H * script[i][2])
+        textDrawCalls[#textDrawCalls + 1] = {
+          progress,
+          s, W * script[i][1], H * script[i][2]
+        }
       end
+    end
+
+    -- Sprites
+    sprites.flush()
+    -- Text
+    for _, t in ipairs(textDrawCalls) do
+      love.graphics.setColor(0.3, 0.3, 0.3, t[1])
+      love.graphics.print(t[2], t[3], t[4])
     end
   end
 

@@ -77,15 +77,15 @@ return function ()
   g.draw = function ()
     for i, b in ipairs(btns) do
       if not b.enabled then
-        love.graphics.setColor(1, 1, 1, 0.2)
+        sprites.tint(1, 1, 1, 0.2)
       elseif i == selected and ptInside then
-        love.graphics.setColor(0.8, 0.8, 0.8)
+        sprites.tint(0.8, 0.8, 0.8)
       else
-        love.graphics.setColor(1, 1, 1)
+        sprites.tint(1, 1, 1)
       end
       sprites.draw(b.sprite, b.x, b.y, b.w, b.h)
     end
-    love.graphics.setColor(1, 1, 1)
+    sprites.tint(1, 1, 1)
   end
 
   return g
