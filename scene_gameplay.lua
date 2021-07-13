@@ -581,11 +581,18 @@ sceneGameplay = function (levelIndex)
     end
     -- Update board
     if boardRunning and not tut.blocksBoardUpdates() then
-      board.update()
-      boardRunProgress = boardRunProgress + 1
-      if boardDoubleSpeed then
+      for _ = 1, (boardDoubleSpeed and 2 or 1) do
         board.update()
         boardRunProgress = boardRunProgress + 1
+        if boardRunProgress % Board.CELL_SUBDIV == 0 then
+          local arriveCount = 0
+          for _, sh in ipairs(board.sheep) do
+            if sh.sheepfold then arriveCount = arriveCount + 1
+            elseif sh.wrongSheepfold then arriveCount = -#board.sheep end
+          end
+          if arriveCount < 0 then arriveCount = -1 end
+          tut.emit('run_progress ' .. boardRunProgress .. ' ' .. arriveCount)
+        end
       end
       -- Update sheep animations
       for _, sh in ipairs(board.sheep) do
