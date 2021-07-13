@@ -85,6 +85,11 @@ loadCrunch('res/sprites.bin')
 
 -- Drawing
 
+local drawR, drawG, drawB, drawA = 1, 1, 1, 1
+
+local layers = {}
+local layerList = {}
+
 local function draw(name, x, y, w, h, layer, r, ox, oy)
   layer = layer or 0
   r = r or 0
@@ -94,20 +99,28 @@ local function draw(name, x, y, w, h, layer, r, ox, oy)
   local cw, ch = item.w, item.h
   local tx, ty = item.tx, item.ty
   local scalex, scaley = w / cw, h / ch
-  item.batch:add(item.quad,
+
+  local l = layers[layer]
+  if l == nil then
+    l = {}
+    layers[layer] = l
+    layerList[#layerList + 1] = layer
+  end
+  l[#l + 1] = {
+    item,
+    drawR, drawG, drawB, drawA,
     x, y,
     r, scalex, scaley,
-    -tx + cw * ox, -ty + ch * oy)
+    -tx + cw * ox, -ty + ch * oy
+  }
 end
 
-local function rectangle(x, y, w, h)
-  draw('white_pixel', x, y, w, h)
+local function rectangle(x, y, w, h, layer)
+  draw('white_pixel', x, y, w, h, layer)
 end
 
 local function tint(r, g, b, a)
-  for _, v in ipairs(batches) do
-    v:setColor(r, g, b, a)
-  end
+  drawR, drawG, drawB, drawA = r, g, b, a or 1
 end
 
 local function delete(name)
@@ -115,6 +128,21 @@ local function delete(name)
 end
 
 local function flush()
+  -- Sort layers
+  table.sort(layerList)
+  for k, layer in ipairs(layerList) do
+    local l = layers[layer]
+    for _, call in ipairs(l) do
+      call[1].batch:setColor(call[2], call[3], call[4], call[5])
+      call[1].batch:add(
+        call[1].quad,
+        call[6], call[7], call[8], call[9], call[10], call[11], call[12]
+      )
+    end
+    layers[layer] = nil
+    layerList[k] = nil
+  end
+
   love.graphics.setColor(1, 1, 1)
   for _, v in ipairs(batches) do
     love.graphics.draw(v, 0, 0)

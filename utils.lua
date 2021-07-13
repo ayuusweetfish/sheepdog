@@ -45,18 +45,19 @@ end
 local sprites = require 'sprites'
 
 function drawBackground(opacity)
+  local LAYER = -9999
   sprites.tint(1, 1, 1, opacity or 1)
   local backgroundScale = 0.4
   local xBackground
   xBackground = W - 450 * backgroundScale
   sprites.draw('background_upperright',
     xBackground, 0,
-    450 * backgroundScale, 250 * backgroundScale)
+    450 * backgroundScale, 250 * backgroundScale, LAYER)
   while xBackground > 0 do
     xBackground = xBackground - 540 * backgroundScale
     sprites.draw('background_upperleft',
       xBackground, 0,
-      540 * backgroundScale, 250 * backgroundScale)
+      540 * backgroundScale, 250 * backgroundScale, LAYER)
   end
   local backgroundLowerWidth = 1000 * backgroundScale
   local backgroundLowerHeight = 750 * backgroundScale
@@ -65,7 +66,7 @@ function drawBackground(opacity)
       sprites.draw('background_lower',
         W - x * backgroundLowerWidth,
         (y - 1) * backgroundLowerHeight + 250 * backgroundScale,
-        backgroundLowerWidth, backgroundLowerHeight)
+        backgroundLowerWidth, backgroundLowerHeight, LAYER)
     end
   end
 end

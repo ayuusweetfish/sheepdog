@@ -50,6 +50,13 @@ local function storehouseButtonCoords(i)
   return x, y
 end
 
+local LAYER_PATH = 0
+local LAYER_FOOTPRINTS = 1
+local LAYER_FENCE_UPPER = 10
+local LAYER_ANIMALS = 20
+local LAYER_FENCE = 30
+local LAYER_INDICATOR = 40
+
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
@@ -846,32 +853,11 @@ sceneGameplay = function (levelIndex)
       sprites.draw('path_1',
         xEntry - i * CELL_SIZE, yEntry, CELL_SIZE, CELL_SIZE, 0, math.pi / 2)
     end
-    -- Sheepfolds (1)
-    -- TODO: Use layers when that is implementated
-    sprites.tint(1, 1, 1)
-    for r = 1, board.h do
-      for c = 1, board.w do
-        local ty = math.floor(board.grid[r][c] / Board.PATH)
-        if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
-          -- Draw sheepfold
-          local index = (ty - Board.TYPE_SHEEPFOLD + 1)
-          if bit.band(board.grid[r][c], 4) ~= 0 then
-          else
-            sprites.draw('fence_' .. index .. '_side_upper',
-              xStart + (c - 1.4) * CELL_SIZE,
-              yStart + (r - 2) * CELL_SIZE,
-              CELL_SIZE * 0.9375, CELL_SIZE * 1.538
-            )
-          end
-        end
-      end
-    end
     -- Sheep in the sheepfolds
     for i, sh in ipairs(board.sheep) do
       if sh.sheepfold then drawSheep(i, sh) end
     end
-    -- Sheepfolds (2)
-    sprites.tint(1, 1, 1)
+    -- Dogs on the grid
     for r = 1, board.h do
       for c = 1, board.w do
         local ty = math.floor(board.grid[r][c] / Board.PATH)
@@ -881,27 +867,27 @@ sceneGameplay = function (levelIndex)
             sprites.draw('fence_' .. index .. '_front',
               xStart + (c - 2) * CELL_SIZE,
               yStart + (r - 1) * CELL_SIZE,
-              CELL_SIZE * 3, CELL_SIZE
+              CELL_SIZE * 3, CELL_SIZE, LAYER_FENCE
             )
           else
             sprites.draw('fence_' .. index .. '_side_lower',
               xStart + (c - 1.4) * CELL_SIZE,
               yStart + (r - (2 - 1.538)) * CELL_SIZE,
-              CELL_SIZE * 0.9375, CELL_SIZE * 1.462
+              CELL_SIZE * 0.9375, CELL_SIZE * 1.462, LAYER_FENCE
+            )
+            sprites.draw('fence_' .. index .. '_side_upper',
+              xStart + (c - 1.4) * CELL_SIZE,
+              yStart + (r - 2) * CELL_SIZE,
+              CELL_SIZE * 0.9375, CELL_SIZE * 1.538, LAYER_FENCE_UPPER
             )
           end
         end
-      end
-    end
-    -- Dogs on the grid
-    for r = 1, board.h do
-      for c = 1, board.w do
         local dog = cellDog(board.grid[r][c])
         if dog ~= 0 then
           sprites.draw(ITEM_SPRITE[DOG_ITEM_START + bit.arshift(dog, 2)],
             xStart + (c - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_X,
             yStart + (r - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_Y,
-            CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
+            CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE, LAYER_ANIMALS)
         end
       end
     end
@@ -933,7 +919,7 @@ sceneGameplay = function (levelIndex)
             sprites.rectangle(
               xStart + (c - 1) * CELL_SIZE,
               yStart + (r - 1) * CELL_SIZE,
-              CELL_SIZE, CELL_SIZE)
+              CELL_SIZE, CELL_SIZE, LAYER_INDICATOR)
           end
         end
       end
@@ -965,7 +951,7 @@ sceneGameplay = function (levelIndex)
       sprites.rectangle(
         STORE_WIDTH,
         yStart + (pinpointRow - 1) * CELL_SIZE,
-        W - STORE_WIDTH, CELL_SIZE
+        W - STORE_WIDTH, CELL_SIZE, LAYER_INDICATOR
       )
       -- Item image
       sprites.tint(1, 1, 1, alpha)
@@ -973,13 +959,13 @@ sceneGameplay = function (levelIndex)
         sprites.draw(ITEM_SPRITE[selectedItem],
           xStart + (pinpointCol - 1) * CELL_SIZE + DOG_OFFSET_X * CELL_SIZE,
           yStart + (pinpointRow - 1) * CELL_SIZE + DOG_OFFSET_Y * CELL_SIZE,
-          CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
+          CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE, LAYER_INDICATOR)
       else
         sprites.draw(ITEM_SPRITE[selectedItem],
           xStart + (pinpointCol - 1) * CELL_SIZE,
           yStart + (pinpointRow - 1) * CELL_SIZE,
           CELL_SIZE, CELL_SIZE,
-          0,
+          LAYER_INDICATOR,
           pathCellRotation(selectedValue))
       end
     end
