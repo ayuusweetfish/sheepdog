@@ -15,6 +15,7 @@ love.graphics.setFont(_G['font_TSZY'])
 
 function love.load()
   love.window.setMode(W, H, { highdpi = true })
+  love.window.setTitle('为小羊指路')
 end
 
 local curScene = sceneStartup()
