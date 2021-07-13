@@ -61,12 +61,12 @@ ignore_list = [
     "Boon.toml",
     "release",
 
-    # Assets used in README
-    "assets",
+    # Assets not used in-game
+    "^assets/",
     # Sprites
-    "res/build_spritesheet.sh",
-    "res/raw",
-    "res/sprites",
+    "^res/build_spritesheet.sh",
+    "^res/raw/",
+    "^res/sprites/",
 ]
 
 # If this is set to true, then the default ignore list will not be
