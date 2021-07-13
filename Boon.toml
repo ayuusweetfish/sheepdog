@@ -24,7 +24,7 @@ package_name = "sheepdog"
 title = "Sheepdog"
 
 # The website associated with your game. Not used in all builds.
-url = "https://github.com/camchenry/boon"
+url = "https://github.com/kawa-yoiko/sheepdog"
 
 # The Uniform Type Identifier for your game. This is required for the
 # macOS build of the game.
@@ -33,7 +33,7 @@ uti = "moe.kawa.sheepdog"
 # An arbitrary version for the current iteration of the game. Can use
 # any desired version format. This will be used to differentiate the
 # resulting build files.
-version = "v0.9.2"
+version = "v0.9.3"
 
 #
 # Build settings
@@ -63,6 +63,10 @@ ignore_list = [
 
     # Assets used in README
     "assets",
+    # Sprites
+    "res/build_spritesheet.sh",
+    "res/raw",
+    "res/sprites",
 ]
 
 # If this is set to true, then the default ignore list will not be

@@ -27,6 +27,6 @@ for i in game_start.png; do
   convert $i -scale 50% ../background/$i
 done
 
-convert background.png -crop 2160x1000+0+0 -scale 25% ../background/background_upperleft.png
-convert background.png -crop 1800x1000+2200+0 -scale 25% ../background/background_upperright.png
-convert background.png -crop 4000x3000+0+1000 -scale 25% ../background/background_lower.png
+convert background.png -crop 2160x1000+0+0 -scale 25% ../sprites/background_upperleft.png
+convert background.png -crop 1800x1000+2200+0 -scale 25% ../sprites/background_upperright.png
+convert background.png -crop 4000x3000+0+1000 -scale 25% ../sprites/background_lower.png
