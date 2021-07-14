@@ -451,8 +451,8 @@ sceneGameplay = function (levelIndex)
     if pinpointingItem then
       pinpointRow, pinpointCol = r, c
       dragToStorehouse = (x < STORE_WIDTH or
-        pinpointRow < -1 or pinpointRow > board.h + 2 or
-        pinpointCol < -1 or pinpointCol > board.w + 2)
+        pinpointRow < 1 or pinpointRow > board.h or
+        pinpointCol < 1 or pinpointCol > board.w)
     elseif holdTime >= 0 then
       if r ~= holdRow or c ~= holdCol then
         convertHoldToPinpoint()
@@ -467,8 +467,8 @@ sceneGameplay = function (levelIndex)
       pinpointRow, pinpointCol = cellPos(x, y)
       if holdDogPos then pinpointRow, pinpointCol = dogCellPos(x, y) end
       dragToStorehouse = (x < STORE_WIDTH or
-        pinpointRow < -1 or pinpointRow > board.h + 2 or
-        pinpointCol < -1 or pinpointCol > board.w + 2)
+        pinpointRow < 1 or pinpointRow > board.h or
+        pinpointCol < 1 or pinpointCol > board.w)
       local destFeasible =
         pinpointRow >= 1 and pinpointRow <= board.h and
         pinpointCol >= 1 and pinpointCol <= board.w and
@@ -944,29 +944,33 @@ sceneGameplay = function (levelIndex)
       local alpha   -- Opacity of the shadow sprite
       if dragToStorehouse then
         -- Item will be moved back to the storehouse if dropped here
-        sprites.tint(0.9, 0.5, 0.4, 0.1)
+        sprites.tint(0.9, 0.5, 0.4, 0)
         alpha = 0.2
       elseif pinpointRow >= 1 and pinpointRow <= board.h and
          pinpointCol >= 1 and pinpointCol <= board.w and
          feasible[pinpointRow][pinpointCol]
       then
         -- Feasible position
-        sprites.tint(0.8, 0.8, 0.4, 0.4)
-        alpha = 0.6
+        sprites.tint(0.2, 0.6, 0.1)
+        alpha = 0.65
       else
         -- Item will be restored to original position if dropped here
         sprites.tint(0.9, 0.5, 0.4, 0.4)
-        alpha = 0.2
+        alpha = 0.3
       end
       local xCell = xStart + (pinpointCol - 1) * CELL_SIZE
       local yCell = yStart + (pinpointRow - 1) * CELL_SIZE
-      sprites.rectangle(xCell, 0, CELL_SIZE, yCell)
-      sprites.rectangle(xCell, yCell + CELL_SIZE, CELL_SIZE, H - (yCell + CELL_SIZE))
-      sprites.rectangle(
-        STORE_WIDTH,
-        yStart + (pinpointRow - 1) * CELL_SIZE,
-        W - STORE_WIDTH, CELL_SIZE
-      )
+      local PAD = CELL_SIZE * 0.05
+      local ext = CELL_SIZE * 0.01
+      local l = CELL_SIZE * 0.2 + ext * 2
+      local anchorX = ext / l
+      local space = CELL_SIZE + PAD * 2
+      for i = 0, 3 do
+        local x = xCell - PAD + ((i == 1 or i == 2) and space or 0)
+        local y = yCell - PAD + ((i >= 2) and space or 0)
+        sprites.draw('line_short', x, y, l, 6, 0, math.pi / 2 * i, anchorX, 0.5)
+        sprites.draw('line_short', x, y, l, 6, 0, math.pi / 2 * (i + 1), anchorX, 0.5)
+      end
       -- Item image
       sprites.tint(1, 1, 1, alpha)
       if isItemDog(selectedItem) then
