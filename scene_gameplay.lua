@@ -431,9 +431,10 @@ sceneGameplay = function (levelIndex)
 
   s.move = function (x, y)
     if btnsStorehouse.move(x, y) then
-      if x >= STORE_WIDTH and
-          btnsStorehouse.selected() >= 1 and
-          btnsStorehouse.selected() <= NUM_ITEMS
+      local index = btnsStorehouse.selected()
+      if index >= 1 and index <= NUM_ITEMS and
+          x >= STORE_BORDER_PAD_X +
+            ITEM_BUTTON_POS[index][1] * (ITEM_SIZE + ITEM_SPACE_X)
       then
         -- Treated as if the button has been triggered
         selectedItem = -1   -- Reset so that this is not treated as a cancel
@@ -1046,7 +1047,7 @@ sceneGameplay = function (levelIndex)
 
       -- Frames around buttons
       local w = 6
-      if selectedItem == i and not selectedDrag then
+      if selectedItem == i and (not selectedDrag or holdRow == -1) then
         sprites.tint(0.8, 0.9, 0.6)
         w = 8
       else
