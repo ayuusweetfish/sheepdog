@@ -10,6 +10,7 @@ local Board = {
   EMPTY = 0,
   OBSTACLE = 1,
   OBSTACLE_SHEEPFOLD = 2,
+  OBSTACLE_INVISIBLE = 3,
 
   PATH = 256,
   -- bits 0, 1, 2, 3: path N/E/S/W
@@ -72,6 +73,7 @@ function Board.create(level)
       local map = {
         [' '] = Board.EMPTY,
         ['o'] = Board.OBSTACLE,
+        ['.'] = Board.OBSTACLE_INVISIBLE,
         ['>'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 2 + 8 + Board.ENTRY,
         ['─'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 2 + 8,
         ['│'] = Board.PATH * Board.TYPE_ORDINARY_PATH + 1 + 4,

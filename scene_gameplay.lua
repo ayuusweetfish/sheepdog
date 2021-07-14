@@ -781,10 +781,19 @@ sceneGameplay = function (levelIndex)
         local yCell = yStart + (r - 1) * CELL_SIZE
         if board.grid[r][c] == Board.OBSTACLE then
           sprites.tint(1, 1, 1)
-          sprites.draw('bush_1',
-            xCell - CELL_SIZE * 0.1,
-            yCell - CELL_SIZE * 0.2,
-            CELL_SIZE * 1.2, CELL_SIZE * 1.2)
+          if c < board.w and board.grid[r][c + 1] == Board.OBSTACLE
+              and not (c > 1 and board.grid[r][c - 1] == Board.OBSTACLE)
+          then
+            sprites.draw('bush_2',
+              xCell - CELL_SIZE * 0.1,
+              yCell - CELL_SIZE * 0.2,
+              CELL_SIZE * 2.2, CELL_SIZE * 1.2)
+          else
+            sprites.draw('bush_1',
+              xCell - CELL_SIZE * 0.1,
+              yCell - CELL_SIZE * 0.2,
+              CELL_SIZE * 1.2, CELL_SIZE * 1.2)
+          end
         end
         if board.grid[r][c] >= Board.PATH then
           local pts = {{0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}}
