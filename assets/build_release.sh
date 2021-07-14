@@ -26,16 +26,22 @@ ${BOON} build . --target all
 
 # Replace icons
 # win32
-#unzip release/Sheepdog-win32.zip -d release/Sheepdog-win32
-#rm release/Sheepdog-win32.zip
-#wine ${RCEDIT} release/Sheepdog-win32/sheepdog.exe --set-icon assets/sheep.ico
+unzip release/Sheepdog-win32.zip -d release/Sheepdog-win32
+rm release/Sheepdog-win32.zip
+wine ${RCEDIT} release/Sheepdog-win32/sheepdog.exe --set-icon assets/sheep.ico
 # win64
-#unzip release/Sheepdog-win64.zip -d release/Sheepdog-win64
-#rm release/Sheepdog-win64.zip
-#wine ${RCEDIT} release/Sheepdog-win64/sheepdog.exe --set-icon assets/sheep.ico
+unzip release/Sheepdog-win64.zip -d release/Sheepdog-win64
+rm release/Sheepdog-win64.zip
+wine ${RCEDIT} release/Sheepdog-win64/sheepdog.exe --set-icon assets/sheep.ico
 # macos
 cp assets/sheep.icns release/Sheepdog.app/Contents/Resources/OS\ X\ AppIcon.icns
-cp assets/sheep.icns release/Sheepdog.app/Contents/Resources/GameIcon.icns
 rm -rf release/Sheepdog.app/Contents/Resources/_CodeSignature
+rm release/Sheepdog.app/Contents/Resources/Assets.car
+rm release/Sheepdog.app/Contents/Resources/GameIcon.icns
+perl -0777 -pi -e 's/\s<key>CFBundleIconName<\/key>\n\s+<string>OS X AppIcon<\/string>\n//g' release/Sheepdog.app/Contents/Info.plist
+
+zip release/Sheepdog-win32.zip -r release/Sheepdog-win32 -9
+zip release/Sheepdog-win64.zip -r release/Sheepdog-win64 -9
+zip release/Sheepdog.app.zip -r release/Sheepdog.app -9
 
 rm -rf assets/sheep.ico assets/sheep.iconset assets/sheep.icns
