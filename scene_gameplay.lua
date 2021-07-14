@@ -1071,31 +1071,49 @@ sceneGameplay = function (levelIndex)
     local yInd = 50
     local scaleInd = (W - xInd - 64) / math.max(15, sheepTotal)
     local hInd = 48
-    local pfxSum = 0
-    for _, flock in ipairs(board.sheepFlocks) do
-      local newSum = pfxSum + flock[2]
-      for i = pfxSum, newSum - 1 do
+    local hIndSprite = sheepTotal <= 15 and hInd or hInd * 0.25 * (3 + 1 / (sheepTotal - 14))
+    sprites.tint(1, 1, 1)
+    sprites.draw('start_mark',
+      xInd, yInd - hInd / 2 * 1.4,
+      hInd * 0.835 * 1.2, hInd * 1.2)
+    local pfxSum = sheepTotal
+    local progIndDrawCalls1 = {}  -- List of {drawCall, opacity}
+    local progIndDrawCalls2 = {}
+    for j = #board.sheepFlocks, 1, -1 do
+      local flock = board.sheepFlocks[j]
+      local newSum = pfxSum - flock[2]
+      for i = pfxSum - 1, newSum, -1 do
         local sprite
         local opacity = 1
         if i < prog - 1 then opacity = 0
         elseif i < prog then opacity = math.pow(i - prog + 1, 3)
         else opacity = 1 end
-        sprites.tint(1, 1, 1, opacity)
-        if flock[1] ~= -1 then
-          sprite = 'sheep_' .. flock[1] .. '_front'
-        else
-          sprite = 'sheep_silhouette'
+        if opacity > 0 then
+          local drawCall = {
+            nil,
+            xInd + (i + 1 - prog) * scaleInd,
+            yInd + hInd * 0.3, hIndSprite, hIndSprite, 0, 0, 0.5, 0.8
+          }
+          if flock[1] ~= -1 then
+            drawCall[1] = 'sheep_' .. flock[1] .. '_front'
+            progIndDrawCalls2[#progIndDrawCalls2 + 1] = {drawCall, opacity}
+          else
+            drawCall[1] = 'sheep_silhouette'
+            progIndDrawCalls1[#progIndDrawCalls1 + 1] = {drawCall, opacity}
+          end
         end
-        sprites.draw(sprite,
-          xInd + (i + 1 - prog) * scaleInd - hInd / 2,
-          yInd - hInd / 2, hInd, hInd)
       end
       pfxSum = newSum
     end
-    sprites.tint(1, 1, 1)
-    sprites.draw('start_mark',
-      xInd, yInd - hInd / 2 * 1.4,
-      hInd * 0.835 * 1.2, hInd * 1.2)
+    -- Send draw calls
+    for _, c in ipairs(progIndDrawCalls1) do
+      sprites.tint(1, 1, 1, c[2])
+      sprites.draw(unpack(c[1]))
+    end
+    for _, c in ipairs(progIndDrawCalls2) do
+      sprites.tint(1, 1, 1, c[2])
+      sprites.draw(unpack(c[1]))
+    end
 
     tutAreas['prog_ind'] = {xInd, yInd - hInd / 2, (sheepTotal + 0.5) * scaleInd, hInd}
 
