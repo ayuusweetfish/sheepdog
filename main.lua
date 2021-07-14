@@ -20,6 +20,11 @@ _G['font_Mali'] = love.graphics.newFont('res/Mali-Regular.ttf', 24)
 _G['font_TSZY'] = love.graphics.newFont('res/AaTianShiZhuYi-2.ttf', 24)
 love.graphics.setFont(_G['font_TSZY'])
 
+local bgm = love.audio.newSource('res/music.ogg', 'stream')
+bgm:setLooping(true)
+bgm:setVolume(0.5)
+bgm:play()
+
 local curScene = sceneStartup()
 local lastScene = nil
 local transitionTimer = 0
