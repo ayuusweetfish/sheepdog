@@ -31,16 +31,22 @@ _G['replaceScene'] = function (newScene, transitionName)
   currentTransition = transitions[transitionName or 'fadeBlack']
 end
 
+local mouseScene = nil
 function love.mousepressed(x, y, button, istouch, presses)
   if button ~= 1 then return end
+  if lastScene ~= nil then return end
+  mouseScene = curScene
   curScene.press(x, y)
 end
 function love.mousemoved(x, y, button, istouch)
+  if mouseScene ~= curScene then return end
   curScene.move(x, y)
 end
 function love.mousereleased(x, y, button, istouch, presses)
   if button ~= 1 then return end
+  if mouseScene ~= curScene then return end
   curScene.release(x, y)
+  mouseScene = nil
 end
 
 local T = 0
