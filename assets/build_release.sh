@@ -1,4 +1,4 @@
-# BOON=~/Downloads/boon-macos-amd64/boon RCEDIT=~/Downloads/rcedit-x64.exe sh assets/build_release.sh
+# BOON=~/Downloads/boon-macos-amd64/boon RCEDIT=~/Downloads/rcedit-x64.exe LOVE_ANDROID=../love-android ANDROID_HOME=~/Library/Android/sdk JAVA_HOME=/usr/local/Cellar/openjdk/15.0.2 sh assets/build_release.sh
 
 rm -rf release
 
@@ -45,3 +45,19 @@ zip release/Sheepdog-win64.zip -r release/Sheepdog-win64 -9
 zip release/Sheepdog.app.zip -r release/Sheepdog.app -9
 
 rm -rf assets/sheep.ico assets/sheep.iconset assets/sheep.icns
+
+# Android
+${SQUARE_ICON} -scale 42x42   ${LOVE_ANDROID}/app/src/main/res/drawable-mdpi/love.png
+${SQUARE_ICON} -scale 72x72   ${LOVE_ANDROID}/app/src/main/res/drawable-hdpi/love.png
+${SQUARE_ICON} -scale 96x96   ${LOVE_ANDROID}/app/src/main/res/drawable-xhdpi/love.png
+${SQUARE_ICON} -scale 144x144 ${LOVE_ANDROID}/app/src/main/res/drawable-xxhdpi/love.png
+${SQUARE_ICON} -scale 192x192 ${LOVE_ANDROID}/app/src/main/res/drawable-xxxhdpi/love.png
+cp release/Sheepdog.love ${LOVE_ANDROID}/app/src/main/assets/game.love
+# Unsigned APK
+# cd ${LOVE_ANDROID} && ./gradlew assembleEmbedRelease
+# cp ${LOVE_ANDROID}/app/build/outputs/apk/embed/release/app-embed-release-unsigned.apk release/Sheepdog.apk
+(cd ${LOVE_ANDROID} && ./gradlew bundleEmbedRelease)
+bundletool build-apks --bundle=${LOVE_ANDROID}/app/build/outputs/bundle/embedRelease/app-embed-release.aab --output=release/Sheepdog.apks --mode=universal
+unzip release/Sheepdog.apks universal.apk -d release
+mv release/universal.apk release/Sheepdog.apk
+rm release/Sheepdog.apks

@@ -1,6 +1,13 @@
 W = 1080
 H = 720
 
+local globalScale
+love.window.setMode(W, H, { highdpi = true })
+love.window.setTitle('为小羊指路')
+local wDev, hDev = love.graphics.getDimensions()
+W = wDev / hDev * H
+globalScale = math.min(wDev / W, hDev / H)
+
 local sceneStartup = require 'scene_startup'
 local sceneGameplay = require 'scene_gameplay'
 
@@ -12,11 +19,6 @@ local drawBackground = drawBackground
 _G['font_Mali'] = love.graphics.newFont('res/Mali-Regular.ttf', 24)
 _G['font_TSZY'] = love.graphics.newFont('res/AaTianShiZhuYi-2.ttf', 24)
 love.graphics.setFont(_G['font_TSZY'])
-
-function love.load()
-  love.window.setMode(W, H, { highdpi = true })
-  love.window.setTitle('为小羊指路')
-end
 
 local curScene = sceneStartup()
 local lastScene = nil
@@ -36,16 +38,16 @@ function love.mousepressed(x, y, button, istouch, presses)
   if button ~= 1 then return end
   if lastScene ~= nil then return end
   mouseScene = curScene
-  curScene.press(x, y)
+  curScene.press(x / globalScale, y / globalScale)
 end
 function love.mousemoved(x, y, button, istouch)
   if mouseScene ~= curScene then return end
-  curScene.move(x, y)
+  curScene.move(x / globalScale, y / globalScale)
 end
 function love.mousereleased(x, y, button, istouch, presses)
   if button ~= 1 then return end
   if mouseScene ~= curScene then return end
-  curScene.release(x, y)
+  curScene.release(x / globalScale, y / globalScale)
   mouseScene = nil
 end
 
@@ -145,6 +147,7 @@ transitions['sheepPull'] = {
 }
 
 function love.draw()
+  love.graphics.scale(globalScale)
   love.graphics.setColor(0.975, 0.975, 0.975)
   love.graphics.rectangle('fill', 0, 0, W, H)
   love.graphics.setColor(1, 1, 1)
