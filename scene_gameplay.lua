@@ -600,7 +600,7 @@ sceneGameplay = function (levelIndex)
         if sh.sheepfold and curAnim ~= ANIM_TYPE_DELIGHT then
           sheepAnim[sh] = {
             ANIM_TYPE_DELIGHT, 0,
-            (bit.band(board.grid[sh.to[1]][sh.to[2]], 4) ~= 0),
+            (bit.band(board.grid[sh.to[1]][sh.to[2]], 5) ~= 0),
             0, math.random() < 0.5 and -1e-6 or 1e-6,
             0.8 + (math.random() - 0.5) * 0.2
           }
@@ -855,7 +855,7 @@ sceneGameplay = function (levelIndex)
         if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
           -- Draw sheepfold
           local index = (ty - Board.TYPE_SHEEPFOLD + 1)
-          if bit.band(board.grid[r][c], 4) ~= 0 then
+          if bit.band(board.grid[r][c], 5) ~= 0 then
           else
             sprites.draw('fence_' .. index .. '_side_upper',
               xStart + (c - 1.4) * CELL_SIZE,
@@ -877,7 +877,7 @@ sceneGameplay = function (levelIndex)
         local ty = math.floor(board.grid[r][c] / Board.PATH)
         if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
           local index = (ty - Board.TYPE_SHEEPFOLD + 1)
-          if bit.band(board.grid[r][c], 4) ~= 0 then
+          if bit.band(board.grid[r][c], 5) ~= 0 then
             sprites.draw('fence_' .. index .. '_front',
               xStart + (c - 2) * CELL_SIZE,
               yStart + (r - 1) * CELL_SIZE,

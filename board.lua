@@ -35,7 +35,7 @@ end
 
 function Board.create(level)
   local levelData = levels[level]
-  if levelData == nil then error('No such level') end
+  if levelData == nil then levelData = levels['endGame'] end
 
   local itemCount = levelData[1]
 
@@ -92,6 +92,10 @@ function Board.create(level)
         ['B'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 1) + 8,
         ['C'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 2) + 8,
         ['D'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 3) + 8,
+        ['a'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 0) + 1,
+        ['b'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 1) + 1,
+        ['c'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 2) + 1,
+        ['d'] = Board.PATH * (Board.TYPE_SHEEPFOLD + 3) + 1,
       }
       char = utf8.char(char)
       row[#row + 1] = map[char]
@@ -106,8 +110,8 @@ function Board.create(level)
       local cell = gridInit[r][c]
       local ty = math.floor(cell / Board.PATH) % Board.TYPE_MAX
       if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
-        if bit.band(cell, 4) ~= 0 then
-          -- Down-facing
+        if bit.band(cell, 5) ~= 0 then
+          -- Vertical
           if c - 1 < 1 or c + 1 > w then error('Insufficient space for sheepfold') end
           gridInit[r][c - 1] = Board.OBSTACLE_SHEEPFOLD
           gridInit[r][c + 1] = Board.OBSTACLE_SHEEPFOLD
