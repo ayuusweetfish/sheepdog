@@ -980,11 +980,12 @@ sceneGameplay = function (levelIndex)
           CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
       else
         sprites.draw(ITEM_SPRITE[selectedItem],
-          xStart + (pinpointCol - 1) * CELL_SIZE,
-          yStart + (pinpointRow - 1) * CELL_SIZE,
+          xStart + (pinpointCol - 0.5) * CELL_SIZE,
+          yStart + (pinpointRow - 0.5) * CELL_SIZE,
           CELL_SIZE, CELL_SIZE,
           0,
-          pathCellRotation(selectedValue))
+          pathCellRotation(selectedValue),
+          0.5, 0.5)
       end
     end
 
