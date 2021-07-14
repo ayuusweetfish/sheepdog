@@ -2,6 +2,7 @@ require 'utils'
 local popcount4, ctz4, cellDog, cloneGrid, dogMobility = popcount4, ctz4, cellDog, cloneGrid, dogMobility
 local drawBackground = drawBackground
 local drawCoarseRect = drawCoarseRect
+local drawCoarseLineVert = drawCoarseLineVert
 
 local Board = require 'board'
 local buttons = require 'buttons'
@@ -1005,6 +1006,11 @@ sceneGameplay = function (levelIndex)
     sprites.rectangle(0, 0, STORE_WIDTH, H * 0.77)
     sprites.tint(157 / 255, 102 / 255, 55 / 255, 0.75)
     sprites.rectangle(0, H * 0.77, STORE_WIDTH, H * 0.23)
+    -- Lines (TODO: to be decided)
+    sprites.tint(157 / 255, 102 / 255, 55 / 255)
+    drawCoarseLineHorz(H * 0.77, 0, STORE_WIDTH)
+    sprites.tint(0.45, 0.25, 0.1)
+    drawCoarseLineVert(STORE_WIDTH, 0, H)
     -- Then, indicator
     for i = 1, NUM_ITEMS do
       local x, y = storehouseButtonCoords(i)

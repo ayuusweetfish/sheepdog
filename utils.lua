@@ -70,6 +70,7 @@ function drawBackground(opacity)
   end
 end
 
+-- XXX: reduce duplication
 function drawCoarseRect(x1, y1, w, h, weight)
   local x2, y2 = x1 + w, y1 + h
   local ext = 2
@@ -91,5 +92,37 @@ function drawCoarseRect(x1, y1, w, h, weight)
     local y = y1 - ext + (y2 - y1 - l + ext * 2) * i / yCount
     sprites.draw(sprite, x1, y, l, w, 0, math.pi / 2, 0, 0.5)
     sprites.draw(sprite, x2, y, l, w, 0, math.pi / 2, 0, 0.5)
+  end
+end
+
+function drawCoarseLineVert(x, y1, y2, weight)
+  local ext = 2
+  local l = 195 + 1/3
+  local w = weight or 6
+  local sprite = 'line'
+  if y2 - y1 < l then
+    sprite = 'line_short'
+    l = 40
+  end
+  local yCount = math.ceil((y2 - y1) / l)
+  for i = 0, yCount do
+    local y = y1 - ext + (y2 - y1 - l + ext * 2) * i / yCount
+    sprites.draw(sprite, x, y, l, w, 0, math.pi / 2, 0, 0.5)
+  end
+end
+
+function drawCoarseLineHorz(y, x1, x2, weight)
+  local ext = 2
+  local l = 195 + 1/3
+  local w = weight or 6
+  local sprite = 'line'
+  if x2 - x1 < l then
+    sprite = 'line_short'
+    l = 40
+  end
+  local xCount = math.ceil((x2 - x1) / l)
+  for i = 0, xCount do
+    local x = x1 - ext + (x2 - x1 - l + ext * 2) * i / xCount
+    sprites.draw(sprite, x, y, l, w, 0, 0, 0, 0.5)
   end
 end
