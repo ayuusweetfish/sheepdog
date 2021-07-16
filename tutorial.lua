@@ -31,6 +31,8 @@ return function (script, areas)
   local time = 0
   local timeWaitTarget = 0
 
+  local explicitAllowInteractions = false
+
   local function calcUntil()
     local i = current
     while i < #script do
@@ -43,6 +45,9 @@ return function (script, areas)
         script[currentUntil][4]:sub(1, 6) == 'delay '
     then
       timeWaitTarget = tonumber(script[currentUntil][4]:sub(7))
+      explicitAllowInteractions =
+        (script[currentUntil][5] ~= nil and
+         script[currentUntil][5].allowInteractions)
     else
       timeWaitTarget = 0
     end
@@ -64,7 +69,7 @@ return function (script, areas)
   end
 
   t.blocksInteractions = function (x, y)
-    if timeWaitTarget > 0 then return true end
+    if timeWaitTarget > 0 and not explicitAllowInteractions then return true end
     local blocking = false
     for i = current, math.min(currentUntil, #script) do
       if script[i][1] == -1 then

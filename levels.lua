@@ -113,6 +113,9 @@ return {
     ">    B",
     "      ",
     "oo c .",
+    tutorial = {
+      {0.45, 0.6, '已经放置的道路也可以拖动', 'delay 1200', {allowInteractions = true}},
+    },
   },
   [7] = {
     {4, 3, 1, 0, 2, 0},
