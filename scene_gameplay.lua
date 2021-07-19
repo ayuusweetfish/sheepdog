@@ -915,10 +915,14 @@ sceneGameplay = function (levelIndex)
       for c = 1, board.w do
         local dog = cellDog(board.grid[r][c])
         if dog ~= 0 then
+          local index = r * board.w + c
+          local rate = math.sin(boardRunProgress / (35 + ((index * 8) % 97) / 10))
+          local w = 1 + rate * 0.002
+          local h = 1 - rate * 0.003
           sprites.draw(ITEM_SPRITE[DOG_ITEM_START + bit.arshift(dog, 2)],
-            xStart + (c - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_X,
-            yStart + (r - 1) * CELL_SIZE + CELL_SIZE * DOG_OFFSET_Y,
-            CELL_SIZE * DOG_SIZE, CELL_SIZE * DOG_SIZE)
+            xStart + (c - 1) * CELL_SIZE + CELL_SIZE * (DOG_OFFSET_X - (w - 1) / 2),
+            yStart + (r - 1) * CELL_SIZE + CELL_SIZE * (DOG_OFFSET_Y - (h - 1)),
+            CELL_SIZE * DOG_SIZE * w, CELL_SIZE * DOG_SIZE * h)
         end
       end
     end
