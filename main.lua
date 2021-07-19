@@ -20,6 +20,9 @@ _G['font_Mali'] = love.graphics.newFont('res/Mali-Regular.ttf', 24)
 _G['font_TSZY'] = love.graphics.newFont('res/AaTianShiZhuYi-2.ttf', 24)
 love.graphics.setFont(_G['font_TSZY'])
 
+local thread = love.thread.newThread('audio_thread.lua')
+thread:start()
+
 local curScene = sceneStartup()
 local lastScene = nil
 local transitionTimer = 0

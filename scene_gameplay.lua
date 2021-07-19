@@ -9,7 +9,7 @@ local buttons = require 'buttons'
 local tutorial = require 'tutorial'
 
 local sprites = require 'sprites'
-local audio = require 'audio'
+local sfx = require('audio').sfx
 
 local STORE_COLUMNS = 2
 local STORE_BORDER_PAD_X = 30
@@ -163,7 +163,7 @@ sceneGameplay = function (levelIndex)
         end
         updateFeasiblility()
         tut.emit('storehouse_click ' .. selectedItem)
-        if isItemDog(selectedItem) then audio('bark') end
+        if isItemDog(selectedItem) then sfx('bark') end
       end
     )
     tutAreas['btn_storehouse ' .. i] = { x, y, ITEM_SIZE, ITEM_SIZE }
@@ -518,7 +518,7 @@ sceneGameplay = function (levelIndex)
           if max < count then max = count end
         end
         if max == 0 then tut.emit('empty') end
-        if isItemPath(selectedItem) then audio('putPath') end
+        if isItemPath(selectedItem) then sfx('putPath') end
         selectedItem = -1
       end
       if selectedDrag and holdRow == -1 then
@@ -550,7 +550,7 @@ sceneGameplay = function (levelIndex)
           rotationCount[holdRow][holdCol] = (rotationCount[holdRow][holdCol] + 1) % 4
         end
       end
-      audio('rotate')
+      sfx('rotate')
       board.grid[holdRow][holdCol] = cell
     end
     holdDogPos = false
@@ -608,14 +608,14 @@ sceneGameplay = function (levelIndex)
           }
           if not flockArrived[sh.flock] then
             flockArrived[sh.flock] = true
-            audio('correctSheepfold')
+            sfx('correctSheepfold')
           end
         elseif sh.wrongSheepfold and curAnim ~= ANIM_TYPE_EXCLAMATION then
           sheepAnim[sh] = {ANIM_TYPE_EXCLAMATION, 0}
-          audio('wrongSheepfold')
+          sfx('wrongSheepfold')
         elseif sh.confused and curAnim ~= ANIM_TYPE_QUESTION then
           sheepAnim[sh] = {ANIM_TYPE_QUESTION, 0}
-          audio('bubble')
+          sfx('bubble')
         end
         if curAnim == ANIM_TYPE_QUESTION and not sh.confused then
           sheepAnim[sh] = {ANIM_TYPE_QUESTION_FADE, 0}
@@ -640,7 +640,7 @@ sceneGameplay = function (levelIndex)
       for _, sh in ipairs(board.sheep) do
         if sh.eta == 0 and not flockEntered[sh.flock] then
           flockEntered[sh.flock] = true
-          audio('bleat')
+          sfx('bleat')
         end
       end
     end
@@ -658,7 +658,7 @@ sceneGameplay = function (levelIndex)
       if not sheepNotArrived then
         -- Level finish
         levelFinishTimer = 0
-        audio('levelFinish')
+        sfx('levelFinish')
       end
     else
       levelFinishTimer = levelFinishTimer + 1
