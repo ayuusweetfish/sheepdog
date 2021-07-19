@@ -55,10 +55,29 @@ return function (script, areas)
   calcUntil()
 
   t.emit = function (event)
-    if currentUntil <= #script and script[currentUntil][4] == event then
-      current = currentUntil + 1
-      calcUntil()
-      time = 0
+    if currentUntil <= #script then
+      if script[currentUntil][4] == event then
+        current = currentUntil + 1
+        calcUntil()
+        time = 0
+      elseif script[currentUntil][5] ~= nil
+          and script[currentUntil][5].revert ~= nil
+      then
+        local found = false
+        for _, pat in ipairs(script[currentUntil][5].revert) do
+          if string.find(event, pat) ~= nil then
+            found = true
+            break
+          end
+        end
+        if found then
+          repeat
+            current = current - 1
+          until current == 1 or script[current - 1][4] ~= nil
+          calcUntil()
+          time = 0
+        end
+      end
     end
   end
 

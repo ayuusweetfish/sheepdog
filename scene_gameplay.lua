@@ -464,6 +464,8 @@ sceneGameplay = function (levelIndex)
 
   s.release = function (x, y)
     if btnsStorehouse.release(x, y) then return end
+    local tutBlocked = tut.blocksInteractions(x, y)
+    if tutBlocked then tut.emit('unexpected_release') end
     if pinpointingItem then
       pinpointingItem = false
       pinpointRow, pinpointCol = cellPos(x, y)
@@ -475,13 +477,14 @@ sceneGameplay = function (levelIndex)
         pinpointRow >= 1 and pinpointRow <= board.h and
         pinpointCol >= 1 and pinpointCol <= board.w and
         feasible[pinpointRow][pinpointCol]
+        and not tutBlocked
       -- selectedDrag and holdRow == -1:
       -- this is the case when dragging out of the storehouse
       if not destFeasible then
         -- Prohibited cell. If the item has been dragged, recover it
         -- to the original position
         if selectedDrag then
-          if dragToStorehouse then
+          if dragToStorehouse and not tutBlocked then
             if holdRow ~= -1 then
               -- Remove from the board and back into the storehouse
               itemCount[selectedItem] = itemCount[selectedItem] + 1
@@ -521,9 +524,8 @@ sceneGameplay = function (levelIndex)
         if isItemPath(selectedItem) then sfx('putPath') end
         selectedItem = -1
       end
-      if selectedDrag and holdRow == -1 then
-        selectedItem = -1
-      end
+      if selectedDrag and holdRow == -1 then selectedItem = -1 end
+      if tutBlocked then selectedItem = -1 end
     elseif holdTime >= 0 then
       holdTime = -1
       -- Tapped. Rotate the item
