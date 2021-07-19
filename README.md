@@ -7,3 +7,12 @@
 **[:arrow_down: v0.9.3](https://github.com/kawa-yoiko/sheepdog/releases/tag/v0.9.3)**
 
 2021 CiGA Game Jam ・ 队伍**栗子粥**
+
+---
+
+音频部分使用了 freesound.org 上的以下内容：
+- swiftoid, "Lamb and Mother" (CC0)
+- Sheyvan, "Putting Down Book" (CC0)
+- InspectorJ, "Ticking Clock, A.wav" (CC BY)
+- BeezleFM, "Pop-up Sound" (CC BY)
+- beerbelly38, "Rosie\_bark\_.wav" (CC BY)

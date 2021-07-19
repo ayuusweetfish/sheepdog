@@ -163,7 +163,7 @@ sceneGameplay = function (levelIndex)
         end
         updateFeasiblility()
         tut.emit('storehouse_click ' .. selectedItem)
-        if isItemDog(selectedItem) then sfx('bark') end
+        sfx('select')
       end
     )
     tutAreas['btn_storehouse ' .. i] = { x, y, ITEM_SIZE, ITEM_SIZE }
@@ -521,8 +521,11 @@ sceneGameplay = function (levelIndex)
           if max < count then max = count end
         end
         if max == 0 then tut.emit('empty') end
-        if isItemPath(selectedItem) then sfx('putPath') end
+        if isItemPath(selectedItem) then sfx('putPath')
+        elseif isItemDog(selectedItem) then sfx('bark') end
         selectedItem = -1
+      else
+        sfx('disable')
       end
       if selectedDrag and holdRow == -1 then selectedItem = -1 end
       if tutBlocked then selectedItem = -1 end
@@ -614,6 +617,7 @@ sceneGameplay = function (levelIndex)
           end
         elseif sh.wrongSheepfold and curAnim ~= ANIM_TYPE_EXCLAMATION then
           sheepAnim[sh] = {ANIM_TYPE_EXCLAMATION, 0}
+          sfx('bubble')
           sfx('wrongSheepfold')
         elseif sh.confused and curAnim ~= ANIM_TYPE_QUESTION then
           sheepAnim[sh] = {ANIM_TYPE_QUESTION, 0}
