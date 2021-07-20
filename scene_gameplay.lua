@@ -342,25 +342,26 @@ sceneGameplay = function (levelIndex)
     if tut.blocksInteractions(x, y) then return end
     if btnsStorehouse.press(x, y) then return end
     if x >= STORE_WIDTH then
-      -- Check dog first
+      local r, c = cellPos(x, y)
       local rDog, cDog = dogCellPosChecked(x, y)
-      if rDog ~= nil and dogMobility(board.grid[rDog][cDog], boardRunning) ~= 0 then
+      if selectedItem ~= -1 then
+        pinpointingItem = true
+      elseif (r >= 1 and r <= board.h and c >= 1 and c <= board.w and
+              dogMobility(board.grid[r][c], boardRunning) ~= 0)
+      then
+        -- Dog in pointed cell
+        holdTime = 0
+        holdRow, holdCol = r, c
+      elseif rDog ~= nil and dogMobility(board.grid[rDog][cDog], boardRunning) ~= 0 then
+        -- Dog in other cell
         holdTime = 0
         holdRow, holdCol = rDog, cDog
         holdDogPos = (x >= xStart + cDog * CELL_SIZE)
                   or (y < yStart + (rDog - 1) * CELL_SIZE)
-      else
-        -- Then ordinary cells (dogs or paths)
-        local r, c = cellPos(x, y)
-        if selectedItem ~= -1 then
-          pinpointingItem = true
-        elseif (editable(r, c) and board.grid[r][c] ~= Board.EMPTY)
-            or (r >= 1 and r <= board.h and c >= 1 and c <= board.w and
-                dogMobility(board.grid[r][c], boardRunning) ~= 0)
-        then
-          holdTime = 0
-          holdRow, holdCol = r, c
-        end
+      elseif (editable(r, c) and board.grid[r][c] ~= Board.EMPTY) then
+        -- Everything else in pointed cell
+        holdTime = 0
+        holdRow, holdCol = r, c
       end
     end
     s.move(x, y)
