@@ -830,12 +830,6 @@ sceneGameplay = function (levelIndex)
             sprites.draw('path_' .. ty,
               xCell + CELL_SIZE / 2, yCell + CELL_SIZE / 2,
               CELL_SIZE, CELL_SIZE, 0, rotation, 0.5, 0.5)
-            -- Entry?
-            if bit.band(board.grid[r][c], Board.ENTRY) ~= 0 then
-              sprites.draw('start_mark',
-                xCell + CELL_SIZE / 2, yCell + CELL_SIZE * 0.25,
-                CELL_SIZE * 0.75, CELL_SIZE * 0.9, 0, 0, 0.5, 1)
-            end
           end
           -- Draw dog
           local dog = cellDog(board.grid[r][c])
@@ -907,6 +901,17 @@ sceneGameplay = function (levelIndex)
               CELL_SIZE * 0.9375, CELL_SIZE * 1.462
             )
           end
+        end
+      end
+    end
+    -- Entry
+    for r = 1, board.h do
+      for c = 1, board.w do
+        if bit.band(board.grid[r][c], Board.ENTRY) ~= 0 then
+          sprites.draw('start_mark',
+            xStart + (c - 1) * CELL_SIZE + CELL_SIZE / 2,
+            yStart + (r - 1) * CELL_SIZE + CELL_SIZE * 0.25,
+            CELL_SIZE * 0.75, CELL_SIZE * 0.9, 0, 0, 0.5, 1)
         end
       end
     end
@@ -1090,6 +1095,7 @@ sceneGameplay = function (levelIndex)
     local scaleInd = (W - xInd - 64) / math.max(15, sheepTotal)
     local hInd = 48
     local hIndSprite = sheepTotal <= 15 and hInd or hInd * 0.25 * (3 + 1 / (sheepTotal - 14))
+    local silhouetteBaseOpacity = 1 - (1 - hIndSprite / hInd) * 1.2
     sprites.tint(1, 1, 1)
     sprites.draw('start_mark',
       xInd, yInd - hInd / 2 * 1.4,
@@ -1117,7 +1123,7 @@ sceneGameplay = function (levelIndex)
             progIndDrawCalls2[#progIndDrawCalls2 + 1] = {drawCall, opacity}
           else
             drawCall[1] = 'sheep_silhouette'
-            progIndDrawCalls1[#progIndDrawCalls1 + 1] = {drawCall, opacity}
+            progIndDrawCalls1[#progIndDrawCalls1 + 1] = {drawCall, opacity * silhouetteBaseOpacity}
           end
         end
       end
