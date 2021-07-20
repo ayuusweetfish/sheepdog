@@ -61,3 +61,7 @@ bundletool build-apks --bundle=${LOVE_ANDROID}/app/build/outputs/bundle/embedRel
 unzip release/Sheepdog.apks universal.apk -d release
 mv release/universal.apk release/Sheepdog.apk
 rm release/Sheepdog.apks
+
+# Emscripten
+love.js --title Sheepdog release/Sheepdog.love release/Sheepdog-web
+cp assets/Caddyfile release/Sheepdog-web
