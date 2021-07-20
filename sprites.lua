@@ -2,6 +2,7 @@
 
 -- Array of sprite batches
 local batches = {}
+local firstBatch
 
 -- Map from names to sprite batches and rectangles
 -- {
@@ -64,7 +65,7 @@ local loadCrunch = function (path)
     for sprId = 1, sprCount do
       local name = read_str()
       local spr = {}
-      spr.batch = batch
+      -- spr.batch = batch
       spr.sx = read_int16()
       spr.sy = read_int16()
       spr.sw = read_int16()
@@ -78,6 +79,7 @@ local loadCrunch = function (path)
         img:getPixelDimensions())
       lookup[name] = spr
     end
+    firstBatch = batch
   end
 end
 
@@ -86,7 +88,7 @@ loadCrunch('res/sprites.bin')
 -- Drawing
 
 local function draw(name, x, y, w, h, layer, r, ox, oy)
-  layer = layer or 0
+  -- layer = layer or 0
   r = r or 0
   ox = ox or 0
   oy = oy or 0
@@ -94,10 +96,32 @@ local function draw(name, x, y, w, h, layer, r, ox, oy)
   local cw, ch = item.w, item.h
   local tx, ty = item.tx, item.ty
   local scalex, scaley = w / cw, h / ch
-  item.batch:add(item.quad,
+  -- Only one batch
+  firstBatch:add(item.quad,
     x, y,
     r, scalex, scaley,
     -tx + cw * ox, -ty + ch * oy)
+end
+
+-- Optimized for batch drawing
+local function drawMulti(name, posList, w, h, layer, r, ox, oy)
+  -- layer = layer or 0
+  r = r or 0
+  ox = ox or 0
+  oy = oy or 0
+  local item = lookup[name]
+  local cw, ch = item.w, item.h
+  local tx, ty = item.tx, item.ty
+  local scalex, scaley = w / cw, h / ch
+  ox = -tx + cw * ox
+  oy = -ty + ch * oy
+  for i = 1, #posList, 2 do
+    -- Only one batch
+    firstBatch:add(item.quad,
+      posList[i], posList[i + 1],
+      r, scalex, scaley,
+      ox, oy)
+  end
 end
 
 local function rectangle(x, y, w, h)
@@ -105,9 +129,13 @@ local function rectangle(x, y, w, h)
 end
 
 local function tint(r, g, b, a)
+  --[[
   for _, v in ipairs(batches) do
     v:setColor(r, g, b, a)
   end
+  ]]
+  -- Only one batch
+  firstBatch:setColor(r, g, b, a)
 end
 
 local function delete(name)
@@ -124,6 +152,7 @@ end
 
 return {
   draw = draw,
+  drawMulti = drawMulti,
   tint = tint,
   delete = delete,
   rectangle = rectangle,

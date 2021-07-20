@@ -70,28 +70,39 @@ function drawBackground(opacity)
   end
 end
 
--- XXX: reduce duplication
-function drawCoarseRect(x1, y1, w, h, weight)
-  local x2, y2 = x1 + w, y1 + h
+-- Optimized for batch drawing
+function drawCoarseRect(posList, w, h, weight)
   local ext = 2
   local l = 195 + 1/3
-  local w = weight or 6
+  weight = weight or 6
   local sprite = 'line'
-  if x2 - x1 < l or y2 - y1 < l then
+  if w < l or h < l then
     sprite = 'line_short'
     l = 40
   end
-  local xCount = math.ceil((x2 - x1) / l)
-  local yCount = math.ceil((y2 - y1) / l)
-  for i = 0, xCount do
-    local x = x1 - ext + (x2 - x1 - l + ext * 2) * i / xCount
-    sprites.draw(sprite, x, y1, l, w, 0, 0, 0, 0.5)
-    sprites.draw(sprite, x, y2, l, w, 0, 0, 0, 0.5)
-  end
-  for i = 0, yCount do
-    local y = y1 - ext + (y2 - y1 - l + ext * 2) * i / yCount
-    sprites.draw(sprite, x1, y, l, w, 0, math.pi / 2, 0, 0.5)
-    sprites.draw(sprite, x2, y, l, w, 0, math.pi / 2, 0, 0.5)
+  local xCount = math.ceil(w / l)
+  local yCount = math.ceil(h / l)
+  for i = 1, #posList, 2 do
+    local x1, y1 = posList[i], posList[i + 1]
+    local x2, y2 = x1 + w, y1 + h
+    local xSpritePos = {}
+    for i = 0, xCount do
+      local x = x1 - ext + (x2 - x1 - l + ext * 2) * i / xCount
+      xSpritePos[#xSpritePos + 1] = x
+      xSpritePos[#xSpritePos + 1] = y1
+      xSpritePos[#xSpritePos + 1] = x
+      xSpritePos[#xSpritePos + 1] = y2
+    end
+    sprites.drawMulti(sprite, xSpritePos, l, weight, 0, 0, 0, 0.5)
+    local ySpritePos = {}
+    for i = 0, yCount do
+      local y = y1 - ext + (y2 - y1 - l + ext * 2) * i / yCount
+      ySpritePos[#ySpritePos + 1] = x1
+      ySpritePos[#ySpritePos + 1] = y
+      ySpritePos[#ySpritePos + 1] = x2
+      ySpritePos[#ySpritePos + 1] = y
+    end
+    sprites.drawMulti(sprite, ySpritePos, l, weight, 0, math.pi / 2, 0, 0.5)
   end
 end
 

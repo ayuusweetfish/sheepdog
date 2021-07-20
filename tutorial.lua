@@ -157,7 +157,7 @@ return function (script, areas)
         else
           sprites.tint(0.4, 0.7, 1.0, progress)
         end
-        drawCoarseRect(x, y, w, h)
+        drawCoarseRect({x, y}, w, h)
       elseif script[i][3] ~= '' then
         local s = script[i][3]
         local pad = 48

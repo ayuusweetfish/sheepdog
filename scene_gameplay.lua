@@ -779,7 +779,7 @@ sceneGameplay = function (levelIndex)
     sprites.tint(0.4, 0.6, 0.4)
     sprites.tint(0.95, 1, 0.95)
     drawCoarseRect(
-      xStart - pad, yStart - pad,
+      {xStart - pad, yStart - pad},
       CELL_SIZE * board.w + pad * 2,
       CELL_SIZE * board.h + pad * 2)
     -- Grid
@@ -1041,6 +1041,7 @@ sceneGameplay = function (levelIndex)
     -- Buttons themselves
     btnsStorehouse.draw()
 
+    local coarseRectPosList = {}
     for i = 1, NUM_ITEMS do
       local x, y = storehouseButtonCoords(i)
       -- Text for count
@@ -1069,12 +1070,13 @@ sceneGameplay = function (levelIndex)
       else
         sprites.tint(0.4, 0.28, 0.1)
       end
-      drawCoarseRect(
-        x - ITEM_SURROUND_SPACE,
-        y - ITEM_SURROUND_SPACE,
-        ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
-        ITEM_SIZE + ITEM_SURROUND_SPACE * 2, w)
+      coarseRectPosList[#coarseRectPosList + 1] = x - ITEM_SURROUND_SPACE
+      coarseRectPosList[#coarseRectPosList + 1] = y - ITEM_SURROUND_SPACE
     end
+    drawCoarseRect(
+      coarseRectPosList,
+      ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
+      ITEM_SIZE + ITEM_SURROUND_SPACE * 2, w)
 
     -- Progress indicator
     local sheepTotal = 0
