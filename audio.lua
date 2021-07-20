@@ -16,8 +16,11 @@ local sfx = function (name)
   sources[name]:play()
 end
 
-local loop = function (introPath, introLen, loopPath, loopLen)
-  local bufSize = 1024
+-- Choose a value for `bufSize` so that
+-- (loopLen (s) * sampleRate (Hz)) % (bufSize (B) / frameSize (B)) is close to 0
+-- Note: frameSize is channelCount * (1 or 2 B, depending on bit depth)
+local loop = function (introPath, introLen, loopPath, loopLen, bufSize)
+  bufSize = bufSize or 1024
   local decIntro = love.sound.newDecoder(introPath, bufSize)
   local decLoop = love.sound.newDecoder(loopPath, bufSize)
   local sr = decIntro:getSampleRate()
@@ -92,6 +95,7 @@ local loop = function (introPath, introLen, loopPath, loopLen)
 
   local update = function ()
     for _ = 1, source:getFreeBufferCount() do push() end
+    if not source:isPlaying() then source:play() end
   end
   update()
 
