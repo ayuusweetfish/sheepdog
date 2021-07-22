@@ -51,9 +51,14 @@ local function storehouseButtonCoords(i)
   return x, y
 end
 
+local RESET_BUTTON_HINT_DUR = 960
+local resetButtonHinted = -1
+
 local sceneGameplay
 sceneGameplay = function (levelIndex)
   local s = {}
+
+  local font = love.graphics.getFont()
 
   local board = Board.create(levelIndex)
   local itemCount = {}
@@ -186,9 +191,15 @@ sceneGameplay = function (levelIndex)
 
   -- Run button
   local runButton, resetButton
+  -- Saved before running
   local savedGrid = {}
   local savedItemCount = {}
   local savedRotationCount = {}
+  -- Saved before resetting
+  local recoveryAvailable = false
+  local recoveryGrid = {}
+  local recoveryItemCount = {}
+  local recoveryRotationCount = {}
   local function updateButtonIcons()
     if boardRunning then
       if boardDoubleSpeed then
@@ -245,35 +256,48 @@ sceneGameplay = function (levelIndex)
     BUTTON_SIZE, BUTTON_SIZE,
     'button_reset',
     function ()
-      -- Stop
       -- This should be triggered both on stop and on reset
-      board.reset()
       selectedItem = -1
       boardRunProgress = 0
-      -- Restore board state
-      cloneGrid(board.grid, savedGrid)
-      if savedRotationCount[1] ~= nil then
-        cloneGrid(rotationCount, savedRotationCount)
-      end
-      if savedItemCount[1] ~= nil then
-        for i = 1, NUM_ITEMS do
-          itemCount[i] = savedItemCount[i]
-        end
-      end
       -- Stop sheep animations
       for k in pairs(sheepAnim) do sheepAnim[k] = nil end
       for k in pairs(flockEntered) do flockEntered[k] = nil end
       for k in pairs(flockArrived) do flockArrived[k] = nil end
 
       if boardRunning then
+        -- Restore board state
+        board.reset()
+        if savedGrid[1] ~= nil then
+          cloneGrid(board.grid, savedGrid)
+          cloneGrid(rotationCount, savedRotationCount)
+          for i = 1, NUM_ITEMS do
+            itemCount[i] = savedItemCount[i]
+          end
+        end
         tut.emit('stop')
-      else
+      elseif not recoveryAvailable then
+        -- Save grid state for recovery
+        cloneGrid(recoveryGrid, board.grid)
+        cloneGrid(recoveryRotationCount, rotationCount)
+        for i = 1, NUM_ITEMS do recoveryItemCount[i] = itemCount[i] end
+        recoveryAvailable = true
         -- Reset everything
         board.reset()
         resetItemCount()
         for r = 1, board.h do
           for c = 1, board.w do rotationCount[r][c] = 0 end
         end
+        -- Hints?
+        if resetButtonHinted == -1 then
+          resetButtonHinted = 0
+        end
+      else
+        -- Recover
+        board.reset()
+        cloneGrid(board.grid, recoveryGrid)
+        cloneGrid(rotationCount, recoveryRotationCount)
+        for i = 1, NUM_ITEMS do itemCount[i] = recoveryItemCount[i] end
+        recoveryAvailable = false
       end
 
       boardRunning = false
@@ -422,6 +446,7 @@ sceneGameplay = function (levelIndex)
     end
     cellAnim[#cellAnim + 1] = {pinpointRow, pinpointCol, ANIM_TYPE_REMOVE, ANIM_DUR}
     updateFeasiblility()
+    recoveryAvailable = false
   end
 
   local function rotateDogForPath(dog, cell)
@@ -524,6 +549,7 @@ sceneGameplay = function (levelIndex)
         if max == 0 then tut.emit('empty') end
         if isItemPath(selectedItem) then sfx('putPath')
         elseif isItemDog(selectedItem) then sfx('bark') end
+        recoveryAvailable = false
         selectedItem = -1
       else
         sfx('disable')
@@ -558,6 +584,7 @@ sceneGameplay = function (levelIndex)
       end
       sfx('rotate')
       board.grid[holdRow][holdCol] = cell
+      recoveryAvailable = false
     end
     holdDogPos = false
   end
@@ -572,6 +599,12 @@ sceneGameplay = function (levelIndex)
       -- Convert to a pinpoint if held for 0.5 second
       if holdTime >= 120 then
         convertHoldToPinpoint()
+      end
+    end
+    if resetButtonHinted >= 0 then
+      resetButtonHinted = resetButtonHinted + 1
+      if resetButtonHinted == RESET_BUTTON_HINT_DUR then
+        resetButtonHinted = -2  -- Hide the hint onwards
       end
     end
     -- Update cell animations
@@ -1151,6 +1184,25 @@ sceneGameplay = function (levelIndex)
 
     -- Tutorial, if any
     tut.draw()
+
+    -- Hint for reset button
+    if resetButtonHinted >= 0 then
+      local alpha = 1
+      if resetButtonHinted < 20 then
+        alpha = resetButtonHinted / 20
+      elseif resetButtonHinted > RESET_BUTTON_HINT_DUR - 20 then
+        alpha = (RESET_BUTTON_HINT_DUR - resetButtonHinted) / 20
+      end
+      local textDrawCalls = {}
+      drawBubbleText(textDrawCalls, font,
+        '重设游戏区域\n再次点击以恢复',
+        STORE_WIDTH + 24, H * 0.8, alpha)
+      sprites.flush()
+      for _, t in ipairs(textDrawCalls) do
+        love.graphics.setColor(0.3, 0.3, 0.3, t[1])
+        love.graphics.print(t[2], t[3], t[4])
+      end
+    end
   end
 
   return s

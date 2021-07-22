@@ -70,6 +70,21 @@ function drawBackground(opacity)
   end
 end
 
+function drawBubbleText(textDrawCalls, font, s, x, y, opacity)
+  local pad = 48
+  local lines = 1
+  for i = 1, #s do
+    if s:sub(i, i) == '\n' then lines = lines + 1 end
+  end
+  local w = font:getWidth(s) + pad * 2
+  local h = font:getHeight() * lines + pad * 2
+  sprites.tint(1, 1, 1, opacity)
+  sprites.draw(w / h > 5 / 3 and 'bubble_1' or 'bubble_2',
+    x - pad, y - pad,
+    w, h)
+  textDrawCalls[#textDrawCalls + 1] = {opacity, s, x, y}
+end
+
 -- Optimized for batch drawing
 function drawCoarseRect(posList, w, h, weight)
   local ext = 2
