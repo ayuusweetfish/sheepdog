@@ -803,6 +803,7 @@ sceneGameplay = function (levelIndex)
     end
   end
 
+  local levelText = love.graphics.newText(_G['font_TSZY'], '关卡 ' .. tostring(levelIndex))
   s.draw = function ()
     local textDrawCalls = {}
 
@@ -1211,6 +1212,14 @@ sceneGameplay = function (levelIndex)
         love.graphics.print(t[2], t[3], t[4])
       end
     end
+
+    -- Level index display
+    love.graphics.setColor(0.97, 0.97, 0.97)
+    local scale = 36 / levelText:getHeight()
+    love.graphics.draw(levelText,
+      W - 12 - levelText:getWidth() * scale,
+      H - 12 - levelText:getHeight() * scale,
+      0, scale)
   end
 
   return s
