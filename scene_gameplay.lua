@@ -34,6 +34,8 @@ local ITEM_SPRITE = {
   'dog_1', 'dog_2'
 }
 
+local RESET_WARN_ANIM_DUR = 60
+
 local function isItemPath(i) return i >= 1 and i <= 4 end
 local function isItemDog(i) return i >= 5 and i <= 6 end
 local DOG_ITEM_START = 4
@@ -183,6 +185,8 @@ sceneGameplay = function (levelIndex)
   local boardRunning = false
   local boardRunProgress = 0
   local boardDoubleSpeed = false
+  local resetConfirm = false
+  local resetConfirmTimer = 0
 
   -- Run button
   local runButton, resetButton
@@ -199,7 +203,11 @@ sceneGameplay = function (levelIndex)
       btnsStorehouse.sprite(resetButton, 'button_stop')
     else
       btnsStorehouse.sprite(runButton, 'button_run')
-      btnsStorehouse.sprite(resetButton, 'button_reset')
+      if resetConfirm then
+        btnsStorehouse.sprite(resetButton, 'sheep_1_front')
+      else
+        btnsStorehouse.sprite(resetButton, 'button_reset')
+      end
     end
   end
   local function runButtonHandler()
@@ -245,6 +253,14 @@ sceneGameplay = function (levelIndex)
     BUTTON_SIZE, BUTTON_SIZE,
     'button_reset',
     function ()
+      if not boardRunning and not resetConfirm then
+        resetConfirm = true
+        resetConfirmTimer = 0
+        updateButtonIcons()
+        return
+      end
+      resetConfirm = false
+
       -- Stop
       -- This should be triggered both on stop and on reset
       board.reset()
@@ -340,7 +356,17 @@ sceneGameplay = function (levelIndex)
 
   s.press = function (x, y)
     if tut.blocksInteractions(x, y) then return end
-    if btnsStorehouse.press(x, y) then return end
+    local btnsAccepted = btnsStorehouse.press(x, y)
+    if resetConfirm then
+      if not btnsAccepted or btnsStorehouse.selected() ~= resetButton then
+        resetConfirm = false
+        resetConfirmTimer = -RESET_WARN_ANIM_DUR
+        updateButtonIcons()
+        btnsStorehouse.blur()
+        return
+      end
+    end
+    if btnsAccepted then return end
     if x >= STORE_WIDTH then
       local r, c = cellPos(x, y)
       local rDog, cDog = dogCellPosChecked(x, y)
@@ -567,6 +593,9 @@ sceneGameplay = function (levelIndex)
 
   s.update = function ()
     btnsStorehouse.update()
+    if resetConfirm or resetConfirmTimer < 0 then
+      resetConfirmTimer = resetConfirmTimer + 1
+    end
     if holdTime >= 0 then
       holdTime = holdTime + 1
       -- Convert to a pinpoint if held for 0.5 second

@@ -45,6 +45,10 @@ return function ()
     ptInside = false
   end
 
+  g.blur = function ()
+    selected = -1
+  end
+
   g.press = function (x, y)
     for i, b in ipairs(btns) do
       if b.enabled and inRect(x, y, b.x, b.y, b.w, b.h) then
