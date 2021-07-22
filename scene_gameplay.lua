@@ -810,7 +810,6 @@ sceneGameplay = function (levelIndex)
     drawBackground()
     -- Border
     local pad = CELL_SIZE * 0.2
-    sprites.tint(0.4, 0.6, 0.4)
     sprites.tint(0.95, 1, 0.95)
     drawCoarseRect(
       {xStart - pad, yStart - pad},
@@ -1081,6 +1080,7 @@ sceneGameplay = function (levelIndex)
     btnsStorehouse.draw()
 
     local coarseRectPosList = {}
+    local highlightX, highlightY
     for i = 1, NUM_ITEMS do
       local x, y = storehouseButtonCoords(i)
       -- Text for count
@@ -1104,18 +1104,26 @@ sceneGameplay = function (levelIndex)
       -- Frames around buttons
       local w = 6
       if selectedItem == i and (not selectedDrag or holdRow == -1) then
-        sprites.tint(0.8, 0.9, 0.6)
-        w = 8
+        highlightX = x - ITEM_SURROUND_SPACE
+        highlightY = y - ITEM_SURROUND_SPACE
       else
-        sprites.tint(0.4, 0.28, 0.1)
+        coarseRectPosList[#coarseRectPosList + 1] = x - ITEM_SURROUND_SPACE
+        coarseRectPosList[#coarseRectPosList + 1] = y - ITEM_SURROUND_SPACE
       end
-      coarseRectPosList[#coarseRectPosList + 1] = x - ITEM_SURROUND_SPACE
-      coarseRectPosList[#coarseRectPosList + 1] = y - ITEM_SURROUND_SPACE
     end
+    sprites.tint(0.4, 0.28, 0.1)
     drawCoarseRect(
       coarseRectPosList,
       ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
       ITEM_SIZE + ITEM_SURROUND_SPACE * 2, w)
+    if highlightX ~= nil then
+      sprites.tint(0.8, 0.9, 0.6)
+      w = 8
+      drawCoarseRect(
+        {highlightX, highlightY},
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2,
+        ITEM_SIZE + ITEM_SURROUND_SPACE * 2, w)
+    end
 
     -- Progress indicator
     local sheepTotal = 0
