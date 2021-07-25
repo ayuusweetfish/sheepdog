@@ -180,7 +180,7 @@ sceneGameplay = function (levelIndex)
   local function resetItemCount()
     for i = 1, NUM_ITEMS do
       itemCount[i] = board.itemCount[i]
-      btnsStorehouse.enable(i, itemCount[i] > 0)
+      btnsStorehouse.enable(i, itemCount[i] > 0 and not boardRunning)
     end
   end
   resetItemCount()
@@ -231,7 +231,7 @@ sceneGameplay = function (levelIndex)
       -- Update item buttons
       for i = 1, NUM_ITEMS do
         btnsStorehouse.enable(i,
-          itemCount[i] > 0 and not (isItemPath(i) and boardRunning))
+          itemCount[i] > 0 and not boardRunning)
       end
     end
     updateButtonIcons()
@@ -305,7 +305,7 @@ sceneGameplay = function (levelIndex)
       -- Update item buttons
       for i = 1, NUM_ITEMS do
         btnsStorehouse.enable(i,
-          itemCount[i] > 0 and not (isItemPath(i) and boardRunning))
+          itemCount[i] > 0 and not boardRunning)
       end
     end
   )
@@ -514,7 +514,7 @@ sceneGameplay = function (levelIndex)
             if holdRow ~= -1 then
               -- Remove from the board and back into the storehouse
               itemCount[selectedItem] = itemCount[selectedItem] + 1
-              btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0)
+              btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0 and not boardRunning)
             end
             selectedItem = -1
             destFeasible = false
@@ -538,7 +538,7 @@ sceneGameplay = function (levelIndex)
         end
         if not selectedDrag or holdRow == -1 then
           itemCount[selectedItem] = itemCount[selectedItem] - 1
-          btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0)
+          btnsStorehouse.enable(selectedItem, itemCount[selectedItem] > 0 and not boardRunning)
         end
         cellAnim[#cellAnim + 1] = {pinpointRow, pinpointCol, ANIM_TYPE_PUT, ANIM_DUR}
         tut.emit('put ' .. pinpointRow .. ' ' .. pinpointCol)
