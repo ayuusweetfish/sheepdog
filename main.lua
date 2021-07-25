@@ -46,7 +46,7 @@ require 'utils'
 local drawBackground = drawBackground
 
 _G['font_Mali'] = love.graphics.newFont('res/Mali-Regular.ttf', 24)
-_G['font_TSZY'] = love.graphics.newFont('res/AaTianShiZhuYi-2.ttf', 24)
+_G['font_TSZY'] = love.graphics.newFont('res/AaTianShiZhuYi.ttf', 24)
 love.graphics.setFont(_G['font_TSZY'])
 
 local thread = love.thread.newThread('audio_thread.lua')
@@ -121,7 +121,7 @@ transitions['fadeBlack'] = {
 }
 
 local levelClearText = love.graphics.newText(
-  love.graphics.newFont('res/AaTianShiZhuYi-2.ttf', 120),
+  love.graphics.newFont('res/AaTianShiZhuYi.ttf', 120),
   '通关'
 )
 transitions['sheepPull'] = {
