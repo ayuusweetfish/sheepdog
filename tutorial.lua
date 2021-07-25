@@ -57,7 +57,9 @@ return function (script, areas)
 
   t.emit = function (event)
     if currentUntil <= #script then
-      if script[currentUntil][4] == event then
+      if script[currentUntil][4] ~= nil
+          and string.find(event, '^' .. script[currentUntil][4] .. '$')
+      then
         current = currentUntil + 1
         calcUntil()
         time = 0

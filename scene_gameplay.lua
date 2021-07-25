@@ -861,7 +861,13 @@ sceneGameplay = function (levelIndex)
               end
             end
             rotation = rotation + rotationCount[r][c] * math.pi / 2
-            sprites.tint(1, 1, 1)
+            if board.gridInit[r][c] >= Board.PATH
+                and bit.band(board.grid[r][c], Board.ENTRY) == 0
+            then
+              sprites.tint(1, 0.97, 0.9)
+            else
+              sprites.tint(1, 1, 1)
+            end
             sprites.draw('path_' .. ty,
               xCell + CELL_SIZE / 2, yCell + CELL_SIZE / 2,
               CELL_SIZE, CELL_SIZE, 0, rotation, 0.5, 0.5)
