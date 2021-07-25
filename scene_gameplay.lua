@@ -1241,11 +1241,11 @@ sceneGameplay = function (levelIndex)
       end
       local offset = 2 * (2 - i)
       love.graphics.draw(levelText,
-        W - 26 - wLabel - wNum + offset,
+        W - 28 - wLabel - wNum + offset,
         H - 16 - hLabel + offset,
         0, scaleLabel)
       love.graphics.draw(levelNumText,
-        W - 16 - wNum + offset,
+        W - 18 - wNum + offset,
         H - 12 - hNum + offset,
         0, scaleNum)
     end
