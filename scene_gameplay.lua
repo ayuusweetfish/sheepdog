@@ -1003,10 +1003,10 @@ sceneGameplay = function (levelIndex)
     -- Pinpoint indicators
     if pinpointingItem then
       local alpha   -- Opacity of the shadow sprite
-      if dragToStorehouse then
+      if dragToStorehouse and holdRow ~= -1 then
         -- Item will be moved back to the storehouse if dropped here
-        sprites.tint(0.9, 0.5, 0.4, 0)
-        alpha = 0.2
+        sprites.tint(0.9, 0.7, 0.4)
+        alpha = 0.3
       elseif pinpointRow >= 1 and pinpointRow <= board.h and
          pinpointCol >= 1 and pinpointCol <= board.w and
          feasible[pinpointRow][pinpointCol]
@@ -1021,16 +1021,28 @@ sceneGameplay = function (levelIndex)
       end
       local xCell = xStart + (pinpointCol - 1) * CELL_SIZE
       local yCell = yStart + (pinpointRow - 1) * CELL_SIZE
-      local PAD = CELL_SIZE * 0.05
       local ext = CELL_SIZE * 0.01
-      local l = CELL_SIZE * 0.2 + ext * 2
-      local anchorX = ext / l
-      local space = CELL_SIZE + PAD * 2
-      for i = 0, 3 do
-        local x = xCell - PAD + ((i == 1 or i == 2) and space or 0)
-        local y = yCell - PAD + ((i >= 2) and space or 0)
-        sprites.draw('line_short', x, y, l, 6, 0, math.pi / 2 * i, anchorX, 0.5)
-        sprites.draw('line_short', x, y, l, 6, 0, math.pi / 2 * (i + 1), anchorX, 0.5)
+      if dragToStorehouse and holdRow ~= -1 then
+        -- Cross at the centre
+        for i = 0, 1 do
+          sprites.draw('line_short',
+            xCell + CELL_SIZE / 2,
+            yCell + CELL_SIZE / 2,
+            CELL_SIZE * 0.35 + ext * 2,
+            6, 0, math.pi * (1/4 + i/2), 0.5, 0.5)
+        end
+      else
+        -- Frame on four corners
+        local PAD = CELL_SIZE * 0.05
+        local l = CELL_SIZE * 0.2 + ext * 2
+        local anchorX = ext / l
+        local space = CELL_SIZE + PAD * 2
+        for i = 0, 3 do
+          local x = xCell - PAD + ((i == 1 or i == 2) and space or 0)
+          local y = yCell - PAD + ((i >= 2) and space or 0)
+          sprites.draw('line_short', x, y, l, 6, 0, math.pi / 2 * i, anchorX, 0.5)
+          sprites.draw('line_short', x, y, l, 6, 0, math.pi / 2 * (i + 1), anchorX, 0.5)
+        end
       end
       -- Item image
       sprites.tint(1, 1, 1, alpha)
