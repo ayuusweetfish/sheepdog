@@ -1,8 +1,13 @@
 W = 1080
 H = 720
 
+local isMobile = (love.system.getOS() == 'Android' or love.system.getOS() == 'iOS')
+
 local globalScale
-love.window.setMode(W, H, { highdpi = true })
+love.window.setMode(W, H, {
+  fullscreen = isMobile,
+  highdpi = true,
+})
 love.window.setTitle('为小羊指路')
 local wDev, hDev = love.graphics.getDimensions()
 W = wDev / hDev * H
