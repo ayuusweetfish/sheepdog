@@ -65,3 +65,4 @@ rm release/Sheepdog.apks
 # Emscripten
 love.js --title Sheepdog release/Sheepdog.love release/Sheepdog-web
 cp assets/Caddyfile release/Sheepdog-web
+zip release/Sheepdog-web.zip -r release/Sheepdog-web
