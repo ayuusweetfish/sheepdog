@@ -353,6 +353,11 @@ sceneGameplay = function (levelIndex)
     end
   end
 
+  -- Time after the finishing criterion has been met
+  local levelFinishTimer = -1
+
+  local pressBlocked = false  -- Blocked by tutorial or level finish
+
   local pinpointingItem = false
   local pinpointRow, pinpointCol = -1, -1
 
@@ -363,7 +368,8 @@ sceneGameplay = function (levelIndex)
   local dragToStorehouse = false
 
   s.press = function (x, y)
-    if tut.blocksInteractions(x, y) then return end
+    pressBlocked = tut.blocksInteractions(x, y) or levelFinishTimer >= 0
+    if pressBlocked then return end
     if btnsStorehouse.press(x, y) then return end
     if x >= STORE_WIDTH then
       local r, c = cellPos(x, y)
@@ -457,6 +463,7 @@ sceneGameplay = function (levelIndex)
   end
 
   s.move = function (x, y)
+    if pressBlocked then return end
     if btnsStorehouse.move(x, y) then
       local index = btnsStorehouse.selected()
       if index >= 1 and index <= NUM_ITEMS and
@@ -489,6 +496,7 @@ sceneGameplay = function (levelIndex)
   end
 
   s.release = function (x, y)
+    if pressBlocked then return end
     if btnsStorehouse.release(x, y) then return end
     local tutBlocked = tut.blocksInteractions(x, y)
     if tutBlocked then tut.emit('unexpected_release') end
@@ -588,9 +596,6 @@ sceneGameplay = function (levelIndex)
     end
     holdDogPos = false
   end
-
-  -- Time after the finishing criterion has been met
-  local levelFinishTimer = -1
 
   s.update = function ()
     btnsStorehouse.update()
@@ -1223,7 +1228,7 @@ sceneGameplay = function (levelIndex)
       end
       local textDrawCalls = {}
       drawBubbleText(textDrawCalls, font,
-        '重设游戏区域\n再次点击以恢复',
+        '游戏区域已重设\n再次点击以恢复',
         STORE_WIDTH + 24, H * 0.8, alpha)
       sprites.flush()
       for _, t in ipairs(textDrawCalls) do
