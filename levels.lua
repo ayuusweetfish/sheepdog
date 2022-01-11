@@ -1,6 +1,6 @@
 --[[
 format for each level:
-  {items}   items: I, L, T, +, dog
+  {items}   items: I, L, T, +, immobile dog, mobile dog
   {sheep}   flock 1 length, rest length, flock 2 length, etc.
   "grid"
     space = empty
@@ -30,48 +30,45 @@ return {
     }
   },
   [2] = {
+    {0, 8, 0, 0, 0, 0},
+    {4},
+    "    o ",
+    ">    A",
+    " oo   ",
+  },
+  [3] = {
     {0, 0, 2, 0, 2, 0},
     {6},
     "    1 ",
     "    │ ",
     ">─ ─  ",
+    "  └o┘ ",
     tutorial = {
       {-1, 'btn_storehouse 3'},
       {0.14, 0.35, '交叉路口格子', 'storehouse_click 3'},
       {-1, 'cell 3 3'},
-      {0.45, 0.55, '放置在这里', 'put 3 3', {revert = {'unexpected_release'}}},
+      {0.45, 0.48, '放置在这里', 'put 3 3', {revert = {'unexpected_release'}}},
       {-1, 'cell 3 3', nil, nil, {instant = true}},
-      {0.45, 0.55, '点击旋转', 'rotate_path 3 3'},
+      {0.45, 0.48, '点击旋转', 'rotate_path 3 3'},
       {-1, 'btn_run'},
       {0.05, 0.76, '小羊能顺利通行吗？', 'run'},
       {0, 0, '', 'delay 540'},
-      {0.45, 0.4, '小羊还不太会认路呢！', 'delay 480'},
+      {0.45, 0.74, '小羊还不太会认路呢！', 'delay 480'},
       {-1, 'btn_stop'},
-      {0.45, 0.4, '小羊还不太会认路呢！', nil, {instant = true}},
+      {0.45, 0.74, '小羊还不太会认路呢！', nil, {instant = true}},
       {0.05, 0.76, '需要我们做些改动', 'stop'},
       {-1, 'btn_storehouse 5'},
       {0.22, 0.08, '牧羊犬是小羊的好伙伴', 'storehouse_click 5'},
       {-1, 'cell 3 3'},
-      {0.45, 0.55, '交叉路口需要放置牧羊犬引路', 'put 3 3', {revert = {'unexpected_release'}}},
-      {0.45, 0.4, '道路上出现的脚印表示\n牧羊犬指引小羊向右前进', 'delay 480'},
-      {0.45, 0.4, '道路上出现的脚印表示\n牧羊犬指引小羊向右前进', nil, {instant = true}},
+      {0.45, 0.74, '交叉路口需要放置牧羊犬引路', 'put 3 3', {revert = {'unexpected_release'}}},
+      {0.45, 0.74, '道路上出现的脚印表示\n牧羊犬指引小羊前进的方向', 'delay 960'},
+      {0.45, 0.74, '道路上出现的脚印表示\n牧羊犬指引小羊前进的方向', nil, {instant = true}},
       {-2, 'btn_storehouse 3'},
       {-2, 'btn_storehouse 5'},
       {0.17, 0.35, '接下来就交给你啦！', 'empty'},
       {-2, 'btn_run'},
       {0.05, 0.76, '完成后就让小羊回到羊圈吧', 'run'},
     }
-  },
-  [3] = {
-    {2, 2, 2, 0, 2, 0},
-    {4},
-    "      ",
-    ">  o A",
-    "      ",
-    tutorial = {
-      {-2, 'cell 2 5'},
-      {0.7, 0.2, '南北方向的羊圈\n同样只能从中间一格进入', 'put 2 5'},
-    },
   },
   [4] = {
     {0, 0, 0, 0, 1, 0},
@@ -94,7 +91,7 @@ return {
       {0.5, 0.78, '第一群小羊顺利抵达红色羊圈……', 'delay 1080'},
       {-1, 'cell 3 3'},
       {0.5, 0.78, '点击改变牧羊犬指引的方向', 'rotate_dog 3 3', {blocksBoard = true}},
-      {0.5, 0.78, '第二群小羊可以回到黄色羊圈了！'},
+      {0.5, 0.78, '第二群小羊可以回到黄色羊圈了！', 'delay 1080'},
     }
   },
   [5] = {
