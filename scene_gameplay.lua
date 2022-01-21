@@ -187,7 +187,7 @@ sceneGameplay = function (levelIndex)
 
   local boardRunning = false
   local boardRunProgress = 0
-  local boardDoubleSpeed = false
+  local boardPaused = false
 
   -- Run button
   local runButton, resetButton
@@ -202,10 +202,10 @@ sceneGameplay = function (levelIndex)
   local recoveryRotationCount = {}
   local function updateButtonIcons()
     if boardRunning then
-      if boardDoubleSpeed then
+      if boardPaused then
         btnsStorehouse.sprite(runButton, 'button_run')
       else
-        btnsStorehouse.sprite(runButton, 'button_ff')
+        btnsStorehouse.sprite(runButton, 'button_pause')
       end
       btnsStorehouse.sprite(resetButton, 'button_stop')
     else
@@ -215,14 +215,14 @@ sceneGameplay = function (levelIndex)
   end
   local function runButtonHandler()
     if boardRunning then
-      -- Double speed
-      boardDoubleSpeed = not boardDoubleSpeed
+      -- Paused
+      boardPaused = not boardPaused
     else
       boardRunning = true
       selectedItem = -1
       boardRunProgress = 0
       -- Start running
-      boardDoubleSpeed = false
+      boardPaused = false
       -- Save board state
       cloneGrid(savedGrid, board.grid)
       cloneGrid(savedRotationCount, rotationCount)
@@ -626,7 +626,7 @@ sceneGameplay = function (levelIndex)
     end
     -- Update board
     if boardRunning and not tut.blocksBoardUpdates() then
-      for _ = 1, (boardDoubleSpeed and 2 or 1) do
+      for _ = 1, (boardPaused and 0 or 1) do
         board.update()
         boardRunProgress = boardRunProgress + 1
         if boardRunProgress % Board.CELL_SUBDIV == 0 then
