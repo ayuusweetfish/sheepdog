@@ -188,6 +188,7 @@ sceneGameplay = function (levelIndex)
   local boardRunning = false
   local boardRunProgress = 0
   local boardPaused = false
+  local boardLastUnpausedAt = 0
 
   -- Run button
   local runButton, resetButton
@@ -217,12 +218,14 @@ sceneGameplay = function (levelIndex)
     if boardRunning then
       -- Paused
       boardPaused = not boardPaused
+      if not boardPaused then boardLastUnpausedAt = boardRunProgress end
     else
       boardRunning = true
       selectedItem = -1
       boardRunProgress = 0
       -- Start running
       boardPaused = false
+      boardLastUnpausedAt = 0
       -- Save board state
       cloneGrid(savedGrid, board.grid)
       cloneGrid(savedRotationCount, rotationCount)
@@ -626,7 +629,9 @@ sceneGameplay = function (levelIndex)
     end
     -- Update board
     if boardRunning and not tut.blocksBoardUpdates() then
-      for _ = 1, (boardPaused and 0 or 1) do
+      local paused = (boardPaused and
+        boardRunProgress >= boardLastUnpausedAt + Board.CELL_SUBDIV)
+      for _ = 1, (paused and 0 or 1) do
         board.update()
         boardRunProgress = boardRunProgress + 1
         if boardRunProgress % Board.CELL_SUBDIV == 0 then
