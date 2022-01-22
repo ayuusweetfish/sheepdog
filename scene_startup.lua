@@ -15,7 +15,7 @@ return function ()
   end
 
   s.release = function (x, y)
-    _G['replaceScene'](sceneGameplay(1))
+    _G['replaceScene'](sceneGameplay(4))
   end
 
   s.update = function ()

@@ -810,6 +810,10 @@ sceneGameplay = function (levelIndex)
 
   local levelText = love.graphics.newText(_G['font_TSZY'], '关卡')
   local levelNumText = love.graphics.newText(_G['font_Mali'], tostring(levelIndex))
+  local sheepfoldIndexText = {}
+  for i = 1, 4 do
+    sheepfoldIndexText[i] = love.graphics.newText(_G['font_Mali'], tostring(i))
+  end
   s.draw = function ()
     local textDrawCalls = {}
 
@@ -934,18 +938,39 @@ sceneGameplay = function (levelIndex)
         local ty = math.floor(board.grid[r][c] / Board.PATH)
         if ty >= Board.TYPE_SHEEPFOLD and ty <= Board.TYPE_SHEEPFOLD_MAX then
           local index = (ty - Board.TYPE_SHEEPFOLD + 1)
+          local textOffsX, textOffsY, textScaleHorz
           if bit.band(board.grid[r][c], 5) ~= 0 then
             sprites.draw('fence_' .. index .. '_front',
               xStart + (c - 2) * CELL_SIZE,
               yStart + (r - 1) * CELL_SIZE,
               CELL_SIZE * 3, CELL_SIZE
             )
+            textOffsX = 0.158
+            textOffsY = -0.685
+            textScaleHorz = 1
           else
             sprites.draw('fence_' .. index .. '_side_lower',
               xStart + (c - 1.4) * CELL_SIZE,
               yStart + (r - (2 - 1.538)) * CELL_SIZE,
               CELL_SIZE * 0.9375, CELL_SIZE * 1.462
             )
+            textOffsX = -1.175
+            textOffsY = -0.275
+            textScaleHorz = 0.8
+          end
+          -- Show sheepfold index if there are more than one
+          if #board.sheepFlocks >= 3 then
+            local textScale = CELL_SIZE / 160
+            local text = sheepfoldIndexText[index]
+            local textW, textH = text:getDimensions()
+            textDrawCalls[#textDrawCalls + 1] = {
+              alpha = 0.6,
+              text,
+              xStart + (c + textOffsX) * CELL_SIZE,
+              yStart + (r + textOffsY) * CELL_SIZE,
+              0, textScale * textScaleHorz, textScale,
+              textW / 2, textH / 2
+            }
           end
         end
       end
@@ -1210,8 +1235,8 @@ sceneGameplay = function (levelIndex)
 
     -- Flush sprites before printing
     sprites.flush()
-    love.graphics.setColor(0.95, 0.95, 0.95)
     for _, t in ipairs(textDrawCalls) do
+      love.graphics.setColor(0.95, 0.95, 0.95, t.alpha or 1)
       love.graphics.draw(unpack(t))
     end
 
