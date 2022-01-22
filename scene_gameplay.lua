@@ -496,7 +496,7 @@ sceneGameplay = function (levelIndex)
   end
 
   s.release = function (x, y)
-    if pressBlocked then return end
+    if pressBlocked then tut.emit('anywhere') return end
     if btnsStorehouse.release(x, y) then return end
     local tutBlocked = tut.blocksInteractions(x, y)
     if tutBlocked then tut.emit('unexpected_release') end

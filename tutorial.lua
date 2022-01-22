@@ -16,7 +16,12 @@ local drawBubbleText = drawBubbleText
 -- if action is string, the corresponding action is awaited
 -- otherwise if action is nil, the item will be shown together
 --   with the following one
--- flags = { instant = true/false, blocksBoard = true/false }
+-- flags = {
+--   instant = true/false,
+--   blocksBoard = true/false,
+--   revert = nil/'action',
+--   allowInteractions = true/false, (only with delay-waiting)
+-- }
 
 -- areas: list of areas (for x == -1 cases)
 --   { name = { x, y, w, h }, ... }
@@ -33,6 +38,7 @@ return function (script, areas)
   local timeWaitTarget = 0
 
   local explicitAllowInteractions = false
+  local waitAnywhere = false
 
   local function calcUntil()
     local i = current
@@ -41,16 +47,19 @@ return function (script, areas)
       i = i + 1
     end
     currentUntil = i
-    if currentUntil <= #script and
-        script[currentUntil][4] ~= nil and
-        script[currentUntil][4]:sub(1, 6) == 'delay '
+
+    timeWaitTarget = 0
+    waitAnywhere = false
+    if currentUntil > #script then return end
+    if script[currentUntil][4] ~= nil and
+       script[currentUntil][4]:sub(1, 6) == 'delay '
     then
       timeWaitTarget = tonumber(script[currentUntil][4]:sub(7))
       explicitAllowInteractions =
         (script[currentUntil][5] ~= nil and
          script[currentUntil][5].allowInteractions)
-    else
-      timeWaitTarget = 0
+    elseif script[currentUntil][4] == 'anywhere' then
+      waitAnywhere = true
     end
   end
   calcUntil()
@@ -92,6 +101,7 @@ return function (script, areas)
 
   t.blocksInteractions = function (x, y)
     if timeWaitTarget > 0 and not explicitAllowInteractions then return true end
+    if waitAnywhere then return true end
     local blocking = false
     for i = current, math.min(currentUntil, #script) do
       if script[i][1] == -1 then
