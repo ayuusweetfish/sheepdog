@@ -29,7 +29,7 @@ if _G['bit'] == nil then
     bxor = function (a, b)
       local val = 1
       local ans = 0
-      while b > 0 do
+      while a > 0 and b > 0 do
         if a % 2 ~= b % 2 then ans = ans + val end
         val = val + val
         a = math.floor(a / 2)
